@@ -1,0 +1,1655 @@
+# Mapa de layout — Entrevista com o Assistido (v1)
+#
+# Ordem: (1) Pessoa (assistido) (2) Entrevista
+# Preencha x, y, largura em pontos PDF (pt). Origem: canto SUPERIOR ESQUERDO.
+# Campos com x:0 y:0 ainda não posicionados.
+# Campos booleanos (tags educacionais, deficiência): use .SIM e .NAO em caixas distintas.
+#
+# Fundo PNG (exporte do PDF):
+#   entrevista_assistido_v1_fundo.png  — página 1
+#   entrevista_assistido_v1_p2.png     — página 2 (se houver)
+
+versao: 1
+relatorio: entrevista_assistido
+paginaFormato: A4
+paginaLargura: 595.28
+paginaAltura: 842
+
+limites:
+  composicaoFamiliar: 10
+  condicoesTrabalho: 10
+  condicoesEducacionais: 10
+  deficienciasFamilia: 3
+  gestantesFamilia: 3
+
+fundos:
+  - pagina: 1
+    arquivo: Ficha_Entrevista_Assistido_pag01.pdf
+  - pagina: 2
+    arquivo: Ficha_Entrevista_Assistido_pag02.pdf
+  - pagina: 3
+    arquivo: Ficha_Entrevista_Assistido_pag03.pdf    
+
+campos:
+
+  # ===========================================================================
+  # PESSOA (assistido) — tabela pessoas + rótulos de bairro/cidade na API
+  # Preferir *Formatado / *Nome / *Exibicao no PDF impresso quando existir.
+  # ===========================================================================
+
+  # --- Identificação ---
+  
+  entrevista.dataEntrevista:
+    pagina: 1
+    x: 467
+    y: 65
+    largura: 99
+    tamanhoFonte: 10
+  
+  pessoa.nome:
+    pagina: 1
+    x: 83
+    y: 109
+    largura: 480
+    tamanhoFonte: 10
+
+  pessoa.nomeSocial:
+    pagina: 1
+    x: 110
+    y: 129
+    largura: 455
+    tamanhoFonte: 10
+
+  pessoa.dtNascimento:
+    pagina: 1
+    x: 373
+    y: 171
+    largura: 190
+    tamanhoFonte: 10
+
+  # --- Filiação ---
+  pessoa.nomeMae:
+    pagina: 1
+    x: 115
+    y: 150
+    largura: 185
+    tamanhoFonte: 9
+
+  pessoa.nomePai:
+    pagina: 1
+    x: 374
+    y: 150
+    largura: 190
+    tamanhoFonte: 9
+
+  # --- Documentos ---
+
+  pessoa.cpfFormatado:
+    pagina: 1
+    x: 72
+    y: 191
+    largura: 190
+    tamanhoFonte: 10
+
+  pessoa.rgFormatado:
+    pagina: 1
+    x: 373
+    y: 190
+    largura: 91
+    tamanhoFonte: 10
+
+  pessoa.rgOrgaoEmissao:
+    pagina: 1
+    x: 508
+    y: 190
+    largura: 47
+    tamanhoFonte: 9
+
+  pessoa.nis:
+    pagina: 1
+    x: 71
+    y: 171
+    largura: 190
+    tamanhoFonte: 10
+
+  # --- Endereço ---
+  pessoa.endereco:
+    pagina: 1
+    x: 97
+    y: 213
+    largura: 253
+    tamanhoFonte: 9
+
+  pessoa.enderecoNumero:
+    pagina: 1
+    x: 374
+    y: 213
+    largura: 109
+    tamanhoFonte: 9
+
+  pessoa.enderecoComplemento:
+    pagina: 1
+    x: 373
+    y: 253
+    largura: 190
+    tamanhoFonte: 9
+
+  pessoa.bairroNome:
+    pagina: 1
+    x: 81
+    y: 233
+    largura: 311
+    tamanhoFonte: 9
+
+
+#  pessoa.cidadeNome:
+#    pagina: 1
+#    x: 132
+#    y: 339
+#    largura: 250
+#    tamanhoFonte: 9
+
+#  pessoa.cidadeEstado:
+#    pagina: 1
+#    x: 0
+#    y: 0
+#    largura: 30
+#    tamanhoFonte: 9
+
+  # Município + UF em uma linha (campo calculado no app: cidadeNome — cidadeEstado)
+  pessoa.municipioExibicao:
+    pagina: 1
+    x: 99
+    y: 254
+    largura: 190
+    tamanhoFonte: 9
+
+  # --- Contato ---
+
+  pessoa.telefoneFormatado:
+    pagina: 1
+    x: 92
+    y: 275
+    largura: 190
+    tamanhoFonte: 9
+
+  pessoa.telefone2Formatado:
+    pagina: 1
+    x: 373
+    y: 275
+    largura: 190
+    tamanhoFonte: 9
+
+  # --- Urbano / rural (marcador em caixa do formulário) ---
+
+  # Texto do enum (Urbano / Rural) se o PDF tiver uma linha em vez de caixas
+  pessoa.urbanoRuralRotulo:
+    pagina: 1
+    x: 125
+    y: 299
+    largura: 190
+    tamanhoFonte: 9
+
+
+  # ===========================================================================
+  # ENTREVISTA — cabeçalho e aba Assistência
+  # ===========================================================================
+
+
+
+  entrevista.outrosTexto:
+    pagina: 1
+    x: 442
+    y: 398
+    largura: 118
+    tamanhoFonte: 9
+    maxLinhas: 1
+
+  forma.DEMANDA_ESPONTANEA:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 349
+    textoMarcado: "X"
+
+  forma.BUSCA_ATIVA:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 366
+    textoMarcado: "X"
+
+  forma.ENCAMINHAMENTO_ASSISTENCIA_SOCIAL:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 382
+    textoMarcado: "X"
+
+  forma.ENCAMINHAMENTO_SAUDE:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 398
+    textoMarcado: "X"
+
+  forma.ENCAMINHAMENTO_EDUCACAO:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 349
+    textoMarcado: "X"
+
+  forma.ENCAMINHAMENTO_CONSELHO_TUTELAR:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 366
+    textoMarcado: "X"
+
+  forma.ENCAMINHAMENTO_GARANTIA_DIREITOS:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 382
+    textoMarcado: "X"
+
+  forma.OUTROS:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 398
+    textoMarcado: "X"
+
+  # ===========================================================================
+  # ENTREVISTA — Programas sociais e órgãos de atendimento (aba Programas Sociais)
+  # Posicione x, y, largura no formulário impresso (0 = ainda não medido).
+  # ===========================================================================
+
+  programas.bolsaFamilia:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 430
+    textoMarcado: "X"
+
+  programas.peti:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 445
+    textoMarcado: "X"
+
+  programas.bpc:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 429
+    textoMarcado: "X"
+
+  programas.outrosProgramas:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 445
+    textoMarcado: "X"
+
+  programas.outrosProgramasSociais:
+    pagina: 1
+    x: 433
+    y: 445
+    largura: 103
+    tamanhoFonte: 9
+    maxLinhas: 1
+
+  programas.cras:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 476
+    textoMarcado: "X"
+
+  programas.centroPop:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 492
+    textoMarcado: "X"
+
+  programas.conselhoTutelar:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 509
+    textoMarcado: "X"
+
+  programas.ubs:
+    pagina: 1
+    tipo: marcador
+    x: 49
+    y: 524
+    textoMarcado: "X"
+
+  programas.creas:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 476
+    textoMarcado: "X"
+
+  programas.caps:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 492
+    textoMarcado: "X"
+
+  programas.craf:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 508
+    textoMarcado: "X"
+
+  programas.outrosAtendimentoFamilia:
+    pagina: 1
+    tipo: marcador
+    x: 289
+    y: 523
+    textoMarcado: "X"
+
+  programas.outrosOrgaosSociais:
+    pagina: 1
+    x: 377
+    y: 525
+    largura: 160
+    tamanhoFonte: 9
+    maxLinhas: 1
+
+  # ===========================================================================
+  # ENTREVISTA — Composição familiar (linha1 … linhaN; ver limites)
+  # ===========================================================================
+
+  composicao.linha1.nome:
+    pagina: 1
+    x: 62
+    y: 607
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha1.cpf:
+    pagina: 1
+    x: 289
+    y: 607
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha1.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 607
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha1.parentesco:
+    pagina: 1
+    x: 495
+    y: 607
+    largura: 71
+    tamanhoFonte: 9
+
+  composicao.linha2.nome:
+    pagina: 1
+    x: 62
+    y: 627
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha2.cpf:
+    pagina: 1
+    x: 289
+    y: 627
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha2.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 627
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha2.parentesco:
+    pagina: 1
+    x: 495
+    y: 627
+    largura: 71
+    tamanhoFonte: 9   
+
+  composicao.linha3.nome:
+    pagina: 1
+    x: 62
+    y: 648
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha3.cpf:
+    pagina: 1
+    x: 289
+    y: 648
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha3.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 648
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha3.parentesco:
+    pagina: 1
+    x: 495
+    y: 648
+    largura: 71
+    tamanhoFonte: 9
+    
+  composicao.linha4.nome:
+    pagina: 1
+    x: 62
+    y: 669
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha4.cpf:
+    pagina: 1
+    x: 289
+    y: 669
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha4.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 669
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha4.parentesco:
+    pagina: 1
+    x: 495
+    y: 669
+    largura: 71
+    tamanhoFonte: 9
+
+  composicao.linha5.nome:
+    pagina: 1
+    x: 62
+    y: 690
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha5.cpf:
+    pagina: 1
+    x: 289
+    y: 690
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha5.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 690
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha5.parentesco:
+    pagina: 1
+    x: 495
+    y: 690
+    largura: 71
+    tamanhoFonte: 9
+
+  composicao.linha6.nome:
+    pagina: 1
+    x: 62
+    y: 709
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha6.cpf:
+    pagina: 1
+    x: 289
+    y: 709
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha6.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 709
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha6.parentesco:
+    pagina: 1
+    x: 495
+    y: 709
+    largura: 71
+    tamanhoFonte: 9
+    
+  composicao.linha7.nome:
+    pagina: 1
+    x: 62
+    y: 731
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha7.cpf:
+    pagina: 1
+    x: 289
+    y: 731
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha7.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 731
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha7.parentesco:
+    pagina: 1
+    x: 495
+    y: 731
+    largura: 71
+    tamanhoFonte: 9
+    
+  composicao.linha8.nome:
+    pagina: 1
+    x: 62
+    y: 751
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha8.cpf:
+    pagina: 1
+    x: 289
+    y: 751
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha8.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 751
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha8.parentesco:
+    pagina: 1
+    x: 495
+    y: 751
+    largura: 71
+    tamanhoFonte: 9
+
+  composicao.linha9.nome:
+    pagina: 1
+    x: 62
+    y: 772
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha9.cpf:
+    pagina: 1
+    x: 289
+    y: 772
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha9.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 772
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha9.parentesco:
+    pagina: 1
+    x: 495
+    y: 772
+    largura: 71
+    tamanhoFonte: 9    
+
+  composicao.linha10.nome:
+    pagina: 1
+    x: 62
+    y: 793
+    largura: 210
+    tamanhoFonte: 9
+  composicao.linha10.cpf:
+    pagina: 1
+    x: 289
+    y: 793
+    largura: 105
+    tamanhoFonte: 9
+  composicao.linha10.dtNascimento:
+    pagina: 1
+    x: 408
+    y: 793
+    largura: 71
+    tamanhoFonte: 9
+  composicao.linha10.parentesco:
+    pagina: 1
+    x: 495
+    y: 793
+    largura: 71
+    tamanhoFonte: 9
+
+
+  # ===========================================================================
+  # ENTREVISTA — Condições de trabalho e renda (aba Trabalho e Renda)
+  # Página 2 do formulário impresso — preencha x, y quando medir no fundo.
+  # ===========================================================================
+
+
+  trabalho.linha1.nome:
+    pagina: 2
+    x: 59
+    y: 141
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha1.ocupacao:
+    pagina: 2
+    x: 376
+    y: 141
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha1.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 141
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha1.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 141
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha1.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 141
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha2.nome:
+    pagina: 2
+    x: 59
+    y: 161
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha2.ocupacao:
+    pagina: 2
+    x: 376
+    y: 161
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha2.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 161
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha2.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 161
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha2.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 161
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha3.nome:
+    pagina: 2
+    x: 59
+    y: 183    
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha3.ocupacao:
+    pagina: 2
+    x: 376
+    y: 183
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha3.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 183
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha3.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 183
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha3.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 183
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha4.nome:
+    pagina: 2
+    x: 59
+    y: 204
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha4.ocupacao:
+    pagina: 2
+    x: 376
+    y: 204
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha4.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 204
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha4.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 204
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha4.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 204
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha5.nome:
+    pagina: 2
+    x: 59
+    y: 224
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha5.ocupacao:
+    pagina: 2
+    x: 376
+    y: 224
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha5.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 224
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha5.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 224
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha5.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 224
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha6.nome:
+    pagina: 2
+    x: 59
+    y: 244
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha6.ocupacao:
+    pagina: 2
+    x: 376
+    y: 244
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha6.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 244
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha6.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 244
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha6.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 244
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha7.nome:
+    pagina: 2
+    x: 59
+    y: 265
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha7.ocupacao:
+    pagina: 2
+    x: 376
+    y: 265
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha7.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 265
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha7.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 265
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha7.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 265
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha8.nome:
+    pagina: 2
+    x: 59
+    y: 285
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha8.ocupacao:
+    pagina: 2
+    x: 376
+    y: 285
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha8.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 285
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha8.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 285
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha8.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 285
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha9.nome:
+    pagina: 2
+    x: 59
+    y: 305
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha9.ocupacao:
+    pagina: 2
+    x: 376
+    y: 305
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha9.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 305
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha9.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 305
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha9.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 305
+    largura: 90
+    tamanhoFonte: 9
+
+  trabalho.linha10.nome:
+    pagina: 2
+    x: 59
+    y: 326
+    largura: 200
+    tamanhoFonte: 9
+  trabalho.linha10.ocupacao:
+    pagina: 2
+    x: 376
+    y: 326
+    largura: 180
+    tamanhoFonte: 9
+  trabalho.linha10.condicoesTrabalho:
+    pagina: 2
+    x: 257
+    y: 326
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 2
+  trabalho.linha10.vrBeneficioSocial:
+    pagina: 2
+    x: 446
+    y: 326
+    largura: 90
+    tamanhoFonte: 9
+  trabalho.linha10.rendaMensal:
+    pagina: 2
+    x: 515
+    y: 326
+    largura: 90
+    tamanhoFonte: 9    
+    
+    
+    
+  trabalho.rendaTotal:
+    pagina: 2
+    x: 195
+    y: 414
+    largura: 120
+    tamanhoFonte: 9
+
+  trabalho.rendaPerCapita:
+    pagina: 2
+    x: 437
+    y: 414
+    largura: 120
+    tamanhoFonte: 9
+    
+
+  # ===========================================================================
+  # ENTREVISTA — Condições educacionais da família
+  # ===========================================================================
+
+  educacional.linha1.nome:
+    pagina: 2
+    x: 61
+    y: 522
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha1.idade:
+    pagina: 2
+    x: 255
+    y: 522
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha1.escolaridade:
+    pagina: 2
+    x: 295
+    y: 522
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha1.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 522
+    textoMarcado: "X"
+  educacional.linha1.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 522
+    textoMarcado: "X"
+  educacional.linha1.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 522
+    textoMarcado: "X"
+  educacional.linha1.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 522
+    textoMarcado: "X"
+
+  educacional.linha2.nome:
+    pagina: 2
+    x: 61
+    y: 539
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha2.idade:
+    pagina: 2
+    x: 255
+    y: 539
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha2.escolaridade:
+    pagina: 2
+    x: 295
+    y: 539
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha2.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 539
+    textoMarcado: "X"
+  educacional.linha2.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 539
+    textoMarcado: "X"
+  educacional.linha2.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 539
+    textoMarcado: "X"
+  educacional.linha2.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 539
+    textoMarcado: "X"
+    
+  educacional.linha3.nome:
+    pagina: 2
+    x: 61
+    y: 557
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha3.idade:
+    pagina: 2
+    x: 255
+    y: 557
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha3.escolaridade:
+    pagina: 2
+    x: 295
+    y: 557
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha3.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 557
+    textoMarcado: "X"
+  educacional.linha3.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 557
+    textoMarcado: "X"
+  educacional.linha3.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 557
+    textoMarcado: "X"
+  educacional.linha3.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 557
+    textoMarcado: "X"
+
+  educacional.linha4.nome:
+    pagina: 2
+    x: 61
+    y: 573
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha4.idade:
+    pagina: 2
+    x: 255
+    y: 573
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha4.escolaridade:
+    pagina: 2
+    x: 295
+    y: 573
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha4.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 573
+    textoMarcado: "X"
+  educacional.linha4.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 573
+    textoMarcado: "X"
+  educacional.linha4.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 573
+    textoMarcado: "X"
+  educacional.linha4.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 573
+    textoMarcado: "X"
+
+  educacional.linha5.nome:
+    pagina: 2
+    x: 61
+    y: 591
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha5.idade:
+    pagina: 2
+    x: 255
+    y: 591
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha5.escolaridade:
+    pagina: 2
+    x: 295
+    y: 591
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha5.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 591
+    textoMarcado: "X"
+  educacional.linha5.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 591
+    textoMarcado: "X"
+  educacional.linha5.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 591
+    textoMarcado: "X"
+  educacional.linha5.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 591
+    textoMarcado: "X"
+
+  educacional.linha6.nome:
+    pagina: 2
+    x: 61
+    y: 609
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha6.idade:
+    pagina: 2
+    x: 255
+    y: 609
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha6.escolaridade:
+    pagina: 2
+    x: 295
+    y: 609
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha6.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 609
+    textoMarcado: "X"
+  educacional.linha6.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 609
+    textoMarcado: "X"
+  educacional.linha6.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 609
+    textoMarcado: "X"
+  educacional.linha6.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 609
+    textoMarcado: "X"    
+
+  educacional.linha7.nome:
+    pagina: 2
+    x: 61
+    y: 627
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha7.idade:
+    pagina: 2
+    x: 255
+    y: 627
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha7.escolaridade:
+    pagina: 2
+    x: 295
+    y: 627
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha7.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 627
+    textoMarcado: "X"
+  educacional.linha7.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 627
+    textoMarcado: "X"
+  educacional.linha7.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 627
+    textoMarcado: "X"
+  educacional.linha7.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 627
+    textoMarcado: "X"
+
+  educacional.linha8.nome:
+    pagina: 2
+    x: 61
+    y: 643
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha8.idade:
+    pagina: 2
+    x: 255
+    y: 643
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha8.escolaridade:
+    pagina: 2
+    x: 295
+    y: 643
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha8.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 643
+    textoMarcado: "X"
+  educacional.linha8.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 643
+    textoMarcado: "X"
+  educacional.linha8.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 643
+    textoMarcado: "X"
+  educacional.linha8.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 643
+    textoMarcado: "X"
+    
+  educacional.linha9.nome:
+    pagina: 2
+    x: 61
+    y: 661
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha9.idade:
+    pagina: 2
+    x: 255
+    y: 661
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha9.escolaridade:
+    pagina: 2
+    x: 295
+    y: 661
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha9.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 661
+    textoMarcado: "X"
+  educacional.linha9.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 661
+    textoMarcado: "X"
+  educacional.linha9.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 661
+    textoMarcado: "X"
+  educacional.linha9.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 661
+    textoMarcado: "X"
+
+  educacional.linha10.nome:
+    pagina: 2
+    x: 61
+    y: 679
+    largura: 200
+    tamanhoFonte: 9
+  educacional.linha10.idade:
+    pagina: 2
+    x: 255
+    y: 679
+    largura: 40
+    tamanhoFonte: 9
+  educacional.linha10.escolaridade:
+    pagina: 2
+    x: 295
+    y: 679
+    largura: 220
+    tamanhoFonte: 9
+  educacional.linha10.sabeLerEscrever.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 387
+    y: 679
+    textoMarcado: "X"
+  educacional.linha10.sabeLerEscrever.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 445
+    y: 679
+    textoMarcado: "X"
+  educacional.linha10.frequentaEscola.SIM:
+    pagina: 2
+    tipo: marcador
+    x: 491
+    y: 679
+    textoMarcado: "X"
+  educacional.linha10.frequentaEscola.NAO:
+    pagina: 2
+    tipo: marcador
+    x: 542
+    y: 679
+    textoMarcado: "X"
+
+
+
+
+
+
+
+
+  # ===========================================================================
+  # ENTREVISTA — Deficiência na família (aba Condições de Saúde)
+  # ===========================================================================
+
+  deficiencia.linha1.nome:
+    pagina: 3
+    x: 63
+    y: 144
+    largura: 200
+    tamanhoFonte: 9
+  deficiencia.linha1.tipoDeficiencia:
+    pagina: 3
+    x: 263
+    y: 144
+    largura: 220
+    tamanhoFonte: 9
+  deficiencia.linha1.necessitaCuidadosConstantes.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 331
+    y: 144
+    textoMarcado: "X"
+  deficiencia.linha1.necessitaCuidadosConstantes.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 394
+    y: 144
+    textoMarcado: "X"
+  deficiencia.linha1.quemECuidador:
+    pagina: 3
+    x: 459
+    y: 144
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 1
+
+  deficiencia.linha2.nome:
+    pagina: 3
+    x: 63
+    y: 165
+    largura: 200
+    tamanhoFonte: 9
+  deficiencia.linha2.tipoDeficiencia:
+    pagina: 3
+    x: 263
+    y: 165
+    largura: 220
+    tamanhoFonte: 9
+  deficiencia.linha2.necessitaCuidadosConstantes.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 331
+    y: 165
+    textoMarcado: "X"
+  deficiencia.linha2.necessitaCuidadosConstantes.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 394
+    y: 165
+    textoMarcado: "X"
+  deficiencia.linha2.quemECuidador:
+    pagina: 3
+    x: 459
+    y: 165
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 1
+
+  deficiencia.linha3.nome:
+    pagina: 3
+    x: 63
+    y: 187
+    largura: 200
+    tamanhoFonte: 9
+  deficiencia.linha3.tipoDeficiencia:
+    pagina: 3
+    x: 263
+    y: 187
+    largura: 220
+    tamanhoFonte: 9
+  deficiencia.linha3.necessitaCuidadosConstantes.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 331
+    y: 187
+    textoMarcado: "X"
+  deficiencia.linha3.necessitaCuidadosConstantes.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 394
+    y: 187
+    textoMarcado: "X"
+  deficiencia.linha3.quemECuidador:
+    pagina: 3
+    x: 459
+    y: 187
+    largura: 250
+    tamanhoFonte: 9
+    maxLinhas: 1
+    
+
+
+  # ===========================================================================
+  # ENTREVISTA — Questionário de saúde da família
+  # Marcadores Sim/Não: saude.<campo>.SIM | saude.<campo>.NAO
+  # ===========================================================================
+
+  saude.remediosControladosMental.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 48
+    y: 269
+    textoMarcado: "X"
+  saude.remediosControladosMental.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 134
+    y: 269
+    textoMarcado: "X"
+  saude.remediosControladosQuais:
+    pagina: 3
+    x: 339
+    y: 269
+    largura: 400
+    tamanhoFonte: 9
+    maxLinhas: 2
+
+  saude.usoAbusivoAlcool.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 48
+    y: 312
+    textoMarcado: "X"
+  saude.usoAbusivoAlcool.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 134
+    y: 312
+    textoMarcado: "X"
+
+  saude.usoAbusivoDrogas.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 48
+    y: 353
+    textoMarcado: "X"
+  saude.usoAbusivoDrogas.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 134
+    y: 353
+    textoMarcado: "X"
+  saude.usoAbusivoDrogasQuais:
+    pagina: 3
+    x: 338
+    y: 353
+    largura: 400
+    tamanhoFonte: 9
+    maxLinhas: 2
+
+  saude.temGestante.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 48
+    y: 392
+    textoMarcado: "X"
+  saude.temGestante.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 134
+    y: 392
+    textoMarcado: "X"
+
+  # Gestantes (lista) — gestante.linhaN.* ; saude.gestante* = 1ª linha (legado)
+  gestante.linha1.nome:
+    pagina: 3
+    x: 62
+    y: 461
+    largura: 220
+    tamanhoFonte: 9
+  gestante.linha1.mesesGestacao:
+    pagina: 3
+    x: 261
+    y: 461
+    largura: 40
+    tamanhoFonte: 9
+  gestante.linha1.iniciouPreNatal.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 417
+    y: 461
+    textoMarcado: "X"
+  gestante.linha1.iniciouPreNatal.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 470
+    y: 461
+    textoMarcado: "X"
+    
+  gestante.linha2.nome:
+    pagina: 3
+    x: 62
+    y: 482
+    largura: 220
+    tamanhoFonte: 9
+  gestante.linha2.mesesGestacao:
+    pagina: 3
+    x: 261
+    y: 482
+    largura: 40
+    tamanhoFonte: 9
+  gestante.linha2.iniciouPreNatal.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 417
+    y: 482
+    textoMarcado: "X"
+  gestante.linha2.iniciouPreNatal.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 470
+    y: 482
+    textoMarcado: "X"
+    
+  gestante.linha3.nome:
+    pagina: 3
+    x: 62
+    y: 504
+    largura: 220
+    tamanhoFonte: 9
+  gestante.linha3.mesesGestacao:
+    pagina: 3
+    x: 261
+    y: 504
+    largura: 40
+    tamanhoFonte: 9
+  gestante.linha3.iniciouPreNatal.SIM:
+    pagina: 3
+    tipo: marcador
+    x: 417
+    y: 504
+    textoMarcado: "X"
+  gestante.linha3.iniciouPreNatal.NAO:
+    pagina: 3
+    tipo: marcador
+    x: 470
+    y: 504
+    textoMarcado: "X"

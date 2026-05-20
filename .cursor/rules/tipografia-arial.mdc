@@ -1,0 +1,56 @@
+---
+description: Tipografia Arial em todas as telas e componentes do app
+alwaysApply: true
+---
+
+# Tipografia — Arial em todo o sistema
+
+**Regra obrigatória:** todo texto visível no app Flutter deve usar a família **Arial**.
+
+## Implementação
+
+- Constante: `AppTheme.fontFamily` em `mobile/lib/theme/app_theme.dart` (valor: `'Arial'`).
+- Novas telas **não** definem outra `fontFamily` em `TextStyle`, `Theme` ou `GoogleFonts`.
+- Estilos de texto: preferir `Theme.of(context).textTheme` (já configurado com Arial).
+- Se precisar de `TextStyle` manual, incluir sempre `fontFamily: AppTheme.fontFamily`.
+- Botões, campos, diálogos, chips, snackbars e listas: usar widgets do Material com o tema global — não sobrescrever fonte.
+
+## Proibido
+
+```dart
+// ❌ Outra fonte
+Text('Olá', style: TextStyle(fontFamily: 'Roboto'));
+Text('Olá', style: GoogleFonts.inter());
+
+// ❌ TextStyle sem fonte quando o widget não herda o tema
+const TextStyle(color: Colors.red, fontSize: 12) // em widgets isolados
+```
+
+## Correto
+
+```dart
+// ✅ Herdar do tema
+Text('Olá', style: Theme.of(context).textTheme.bodyLarge);
+
+// ✅ Explícito com a constante do projeto
+Text(
+  'Erro',
+  style: TextStyle(
+    fontFamily: AppTheme.fontFamily,
+    color: Colors.red,
+    fontSize: 12,
+  ),
+);
+```
+
+## Novas telas — checklist
+
+1. Usar `AppScaffold`, `AppCard`, `AppButton` e demais widgets em `mobile/lib/widgets/`.
+2. Não alterar `fontFamily` no `MaterialApp` nem criar `ThemeData` paralelo.
+3. Revisar `TextStyle(` no diff: todo estilo inline deve ter `fontFamily: AppTheme.fontFamily` ou vir do `textTheme`.
+4. Ícones (`Icons.*`) não usam fonte de texto — isso não se aplica.
+
+## Referência
+
+- Tema: `mobile/lib/theme/app_theme.dart`
+- Identidade: `IdentidadeGrafica.md` §3 (Tipografia)

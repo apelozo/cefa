@@ -1,0 +1,27 @@
+---
+description: Nunca usar delete em cascata no Cefa
+alwaysApply: true
+---
+
+# Exclusões sem cascade
+
+**Regra do projeto:** não implementar `ON DELETE CASCADE` no banco nem apagar registros filhos automaticamente ao excluir um pai.
+
+## Obrigatório
+
+- FKs no Prisma: `onDelete: Restrict` (ou omitir, mantendo restrict).
+- Antes de `delete`, validar vínculos na camada de serviço e lançar `DeleteBlockedError` com mensagem clara.
+- Rotas `DELETE` retornam **409** quando a exclusão for bloqueada por dependências.
+- Diálogos do app não devem prometer remoção em cascata de lançamentos/perguntas.
+
+## Bloqueios atuais
+
+| Exclusão | Bloqueia se existir |
+|----------|---------------------|
+| Tipo de formulário | Lançamentos (submissões) ou perguntas vinculadas |
+| Pergunta | Respostas vinculadas |
+| Pessoa | Lançamentos (submissões) ou entrevistas com o assistido vinculadas |
+
+## Exceção
+
+Só adicionar cascade ou exclusão em cadeia quando o usuário **pedir explicitamente** nesse repositório.

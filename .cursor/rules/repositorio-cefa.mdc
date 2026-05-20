@@ -1,0 +1,27 @@
+---
+description: Manter todo o trabalho restrito ao repositório Cefa
+alwaysApply: true
+---
+
+# Escopo do repositório Cefa
+
+**Cefa** — Sistema de Auxílio Centro Espírita Francisco de Assis.
+
+**Raiz do projeto:** `D:\Projetos\Cursor\Cefa`
+
+## Regras obrigatórias
+
+- Todo desenvolvimento, documentação, configuração e alterações de código devem ocorrer **somente** dentro desta raiz (`backend/`, `mobile/`, arquivos na raiz, `.cursor/`, etc.).
+- **Nunca** criar, editar, mover ou excluir arquivos em pastas irmãs ou em outros repositórios (ex.: `D:\Projetos\Cursor\Viagens`, outros projetos em `D:\Projetos\Cursor\`).
+- Outros projetos podem ser citados ou lidos **apenas como referência**, sem modificar nada fora de `Cefa`.
+- Ao sugerir comandos, usar caminhos relativos à raiz do Cefa ou o caminho absoluto `D:\Projetos\Cursor\Cefa\...`.
+- Dependências e assets do Cefa ficam no próprio repositório (ex.: `mobile/assets/`), não em projetos externos.
+
+## Exemplos
+
+```
+✅ D:\Projetos\Cursor\Cefa\mobile\lib\widgets\record_action_buttons.dart
+✅ D:\Projetos\Cursor\Cefa\backend\src\index.ts
+❌ D:\Projetos\Cursor\Viagens\app_viagens\lib\...
+❌ Copiar ou alterar arquivos fora de Cefa para “reaproveitar” no projeto
+```

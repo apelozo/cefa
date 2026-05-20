@@ -1,0 +1,42 @@
+Você vai mexer em…	                                                  Peça para ler (mínimo)
+Qualquer coisa
+DOCUMENTACAO.md (índice)                                              
+
+Regra de negócio / campos / exclusão / FK                             docs/modelo-dados.md — seção da entidade (ex.: ### Pessoa)            
+API, validação, POST/PUT, 409                                         docs/api.md — seção do recurso + ### Regras de negócio (API) no fim
+Tela Flutter, fluxo, filtro, UX                                       docs/mobile.md — tela/fluxo correspondente
+Subir ambiente / migration                                            docs/setup.md
+Bug / erro                                                            docs/troubleshooting.md + o arquivo da camada onde acha que está o problema
+Arial, só no Cefa, sem cascade                                        Não precisa pedir — já vêm de .cursor/rules/ automaticamente
+
+
+Para cadastro de pessoas, por exemplo:
+
+Leia docs/modelo-dados.md (Pessoa, Cidade, Bairro), docs/api.md (Pessoas) e docs/mobile.md (Cadastrar pessoas / endereço). Depois implemente [sua tarefa].
+
+O que não precisa pedir toda vez
+	Ler tudo em docs/ — só o que a tarefa tocar.
+	Repetir regras de .cursor/rules/ (escopo Cefa, Arial, sem cascade) — já entram no contexto.
+	docs/historico.md — só se for “o que mudou recentemente” ou entender uma decisão antiga.
+	Frases prontas (copiar e colar)
+
+
+
+Feature nova em domínio conhecido:
+
+Contexto Cefa: leia DOCUMENTACAO.md e, para [pessoas|perguntas|entrevista|…]:
+- docs/modelo-dados.md (seção [entidade])
+- docs/api.md (seção [recurso])
+- docs/mobile.md (seção [tela/fluxo])
+
+Tarefa: [descreva]
+Só backend:
+
+Leia docs/modelo-dados.md + docs/api.md para [domínio]. Tarefa: [X]
+Só app:
+
+Leia docs/mobile.md para [tela/fluxo]. Tarefa: [X]
+Dúvida de regra de negócio (sem código ainda):
+
+Onde está documentado como funciona [cadastro de pessoas / exclusão / permissão]?
+Consulte docs/modelo-dados.md e me resuma as regras.

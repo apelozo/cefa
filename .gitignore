@@ -1,0 +1,8 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+backend/dist/
+mobile/build/
+mobile/.dart_tool/
