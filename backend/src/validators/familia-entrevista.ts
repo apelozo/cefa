@@ -140,17 +140,21 @@ export const deficienciaFamiliarItemSchema = z.object({
 const mesesGestacaoSchema = z
   .union([z.number(), z.string()])
   .transform((v) => {
-    if (v === undefined || v === null || v === "") return null;
+    if (v === undefined || v === null || v === "") return NaN;
     const n = typeof v === "number" ? v : parseInt(String(v).trim(), 10);
-    return Number.isFinite(n) ? n : null;
-  });
+    return Number.isFinite(n) ? n : NaN;
+  })
+  .pipe(
+    z
+      .number()
+      .int()
+      .min(0)
+      .max(10, { message: "Informe os meses de gestação (0 a 10)" }),
+  );
 
 export const gestanteFamiliarItemSchema = z.object({
   nome: z.string().trim().min(1, "Nome é obrigatório"),
-  mesesGestacao: mesesGestacaoSchema.refine(
-    (n) => n !== null && n >= 0 && n <= 10,
-    { message: "Informe os meses de gestação (0 a 10)" },
-  ),
+  mesesGestacao: mesesGestacaoSchema,
   iniciouPreNatal: respostaSimNaoSchema,
 });
 
