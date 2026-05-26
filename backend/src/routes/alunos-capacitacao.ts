@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   AlunoCapacitacaoConflictError,
@@ -41,14 +42,14 @@ export const alunosCapacitacaoRoutes: FastifyPluginAsync = async (app) => {
         .status(404)
         .send({ error: "Aluno de capacitação não encontrado" });
     }
-    return reply.send(mapAlunoCapacitacao(item));
+    return replyMapped(reply, item, mapAlunoCapacitacao);
   });
 
   app.post("/alunos-capacitacao", async (request, reply) => {
     try {
       const body = createAlunoCapacitacaoSchema.parse(request.body);
       const item = await createAlunoCapacitacao(body, request.usuarioId!);
-      return reply.status(201).send(mapAlunoCapacitacao(item));
+      return replyMapped(reply, item, mapAlunoCapacitacao, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -79,7 +80,7 @@ export const alunosCapacitacaoRoutes: FastifyPluginAsync = async (app) => {
           .status(404)
           .send({ error: "Aluno de capacitação não encontrado" });
       }
-      return reply.send(mapAlunoCapacitacao(item));
+      return replyMapped(reply, item, mapAlunoCapacitacao);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -108,6 +109,6 @@ export const alunosCapacitacaoRoutes: FastifyPluginAsync = async (app) => {
         .status(404)
         .send({ error: "Aluno de capacitação não encontrado" });
     }
-    return reply.send(mapAlunoCapacitacao(item));
+    return replyMapped(reply, item, mapAlunoCapacitacao);
   });
 };

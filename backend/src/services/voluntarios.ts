@@ -3,6 +3,7 @@ import {
   auditAlteracao,
   auditInclusao,
   mapAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { formatDataBr } from "../lib/campo.js";
 import { formatCpf } from "../lib/cpf.js";
@@ -69,7 +70,7 @@ function dadosPrismaFromInput(
     }),
     ...(data.bairro !== undefined && { bairro: data.bairro }),
     ...(data.cep !== undefined && { cep: data.cep }),
-    ...(data.cidadeCodigo !== undefined && {
+    ...(data.cidadeCodigo != null && {
       cidadeCodigo: data.cidadeCodigo,
     }),
     ...(data.enderecoComplemento !== undefined && {
@@ -101,7 +102,8 @@ function dadosPrismaFromInput(
     ...(data.nome !== undefined && { nome: data.nome }),
     ...(data.nomeCracha !== undefined && { nomeCracha: data.nomeCracha }),
     ...(data.fichaMedica !== undefined && { fichaMedica: data.fichaMedica }),
-    ...(data.ativo !== undefined && { ativo: data.ativo }),
+    ...("ativo" in data &&
+      data.ativo !== undefined && { ativo: data.ativo }),
   };
 }
 
@@ -168,7 +170,7 @@ export async function createVoluntario(
         ativo: true,
         ...dadosPrismaFromInput(data),
         ...auditInclusao(usuarioId),
-      },
+      } as Prisma.VoluntarioUncheckedCreateInput,
       include: voluntarioInclude,
     });
   } catch (err) {
@@ -223,7 +225,9 @@ export async function updateVoluntario(
 export async function desativarVoluntario(id: string, usuarioId: string) {
   const existing = await prisma.voluntario.findUnique({ where: { id } });
   if (!existing) return null;
-  if (!existing.ativo) return existing;
+  if (!existing.ativo) {
+    return getVoluntarioById(id);
+  }
 
   return prisma.voluntario.update({
     where: { id },
@@ -277,7 +281,7 @@ function formatCepExibicao(cep: string | null | undefined): string | null {
   return cep;
 }
 
-export function mapVoluntario(v: VoluntarioComRelacoes) {
+export function mapVoluntario(v: VoluntarioComRelacoes, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: v.id,
     codigo: v.codigo,
@@ -318,6 +322,6 @@ export function mapVoluntario(v: VoluntarioComRelacoes) {
     nomeCracha: v.nomeCracha,
     fichaMedica: v.fichaMedica,
     ativo: v.ativo,
-    ...mapAuditoria(v),
+    ...mapAuditoria(v, usuarios),
   };
 }

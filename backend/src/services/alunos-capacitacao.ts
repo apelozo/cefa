@@ -2,7 +2,9 @@ import { Prisma } from "@prisma/client";
 import {
   auditAlteracao,
   auditInclusao,
+  enrichUsuarioMap,
   mapAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { formatDataBr } from "../lib/campo.js";
 import { formatCpf } from "../lib/cpf.js";
@@ -97,12 +99,12 @@ function dadosPrismaFromInput(data: CreateAlunoCapacitacaoInput) {
       nacionalidade: data.nacionalidade,
     }),
     ...(data.naturalidadeCodigo !== undefined && {
-      naturalidadeCodigo: data.naturalidadeCodigo,
+      naturalidadeCodigo: data.naturalidadeCodigo ?? null,
     }),
     ...(data.nomeMae !== undefined && { nomeMae: data.nomeMae }),
     ...(data.nomePai !== undefined && { nomePai: data.nomePai }),
     ...(data.escolaridadeCodigo !== undefined && {
-      escolaridadeCodigo: data.escolaridadeCodigo,
+      escolaridadeCodigo: data.escolaridadeCodigo ?? null,
     }),
     ...(data.nomeUltimaEscola !== undefined && {
       nomeUltimaEscola: data.nomeUltimaEscola,
@@ -113,7 +115,7 @@ function dadosPrismaFromInput(data: CreateAlunoCapacitacaoInput) {
     }),
     ...(data.bairro !== undefined && { bairro: data.bairro }),
     ...(data.cep !== undefined && { cep: data.cep }),
-    ...(data.cidadeCodigo !== undefined && { cidadeCodigo: data.cidadeCodigo }),
+    ...(data.cidadeCodigo != null && { cidadeCodigo: data.cidadeCodigo }),
     ...(data.tipoCasa !== undefined && {
       tipoCasa: data.tipoCasa,
       valorAluguel:
@@ -209,7 +211,8 @@ export async function listAlunosCapacitacao(
     orderBy: [{ nome: "asc" }],
   });
 
-  return rows.map((a) => mapAlunoCapacitacaoResumo(a));
+  const usuarios = await enrichUsuarioMap(rows);
+  return rows.map((a) => mapAlunoCapacitacaoResumo(a, usuarios));
 }
 
 export async function getAlunoCapacitacaoById(id: string) {
@@ -232,7 +235,7 @@ export async function createAlunoCapacitacao(
           ...dadosPrismaFromInput(data),
           ativo: true,
           ...auditInclusao(usuarioId),
-        },
+        } as Prisma.AlunoCapacitacaoProfissionalUncheckedCreateInput,
       });
 
       await salvarRendasFamiliares(
@@ -321,7 +324,9 @@ export async function desativarAlunoCapacitacao(
     where: { id },
   });
   if (!existing) return null;
-  if (!existing.ativo) return existing;
+  if (!existing.ativo) {
+    return getAlunoCapacitacaoById(id);
+  }
 
   return prisma.alunoCapacitacaoProfissional.update({
     where: { id },
@@ -363,6 +368,7 @@ export class AlunoCapacitacaoValidationError extends Error {
 
 function mapRendaFamiliar(
   r: AlunoComRelacoes["rendasFamiliares"][number],
+  usuarios?: UsuarioAuditoriaMap,
 ) {
   return {
     id: r.id,
@@ -372,7 +378,7 @@ function mapRendaFamiliar(
     renda: Number(r.renda),
     parentesco: r.parentesco,
     profissao: r.profissao,
-    ...mapAuditoria(r),
+    ...mapAuditoria(r, usuarios),
   };
 }
 
@@ -386,8 +392,9 @@ function mapAlunoCapacitacaoResumo(
       rendasFamiliares: { select: { nome: true; renda: true } };
     };
   }>,
+  usuarios?: UsuarioAuditoriaMap,
 ) {
-  const base = mapAlunoCapacitacaoCore(a);
+  const base = mapAlunoCapacitacaoCore(a, usuarios);
   return {
     ...base,
     rendaPerCapita: calcularRendaPerCapita(a.rendasFamiliares),
@@ -452,6 +459,7 @@ function mapAlunoCapacitacaoCore(
     } | null;
     escolaridade?: { codigo: number; descricao: string } | null;
   },
+  usuarios?: UsuarioAuditoriaMap,
 ) {
   const idade =
     a.dtNascimento != null ? calcularIdade(a.dtNascimento) : null;
@@ -509,15 +517,20 @@ function mapAlunoCapacitacaoCore(
     vacinacao: a.vacinacao,
     alergias: a.alergias,
     ativo: a.ativo,
-    ...mapAuditoria(a),
+    ...mapAuditoria(a, usuarios),
   };
 }
 
-export function mapAlunoCapacitacao(a: AlunoComRelacoes) {
-  const core = mapAlunoCapacitacaoCore(a);
+export function mapAlunoCapacitacao(
+  a: AlunoComRelacoes,
+  usuarios?: UsuarioAuditoriaMap,
+) {
+  const core = mapAlunoCapacitacaoCore(a, usuarios);
   return {
     ...core,
-    rendasFamiliares: a.rendasFamiliares.map(mapRendaFamiliar),
+    rendasFamiliares: a.rendasFamiliares.map((r) =>
+      mapRendaFamiliar(r, usuarios),
+    ),
     rendaPerCapita: calcularRendaPerCapita(a.rendasFamiliares),
   };
 }

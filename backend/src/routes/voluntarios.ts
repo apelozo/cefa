@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   VoluntarioConflictError,
@@ -55,7 +56,7 @@ export const voluntariosRoutes: FastifyPluginAsync = async (app) => {
       cpf: query.cpf,
       departamentoCodigo,
     });
-    return reply.send(items.map(mapVoluntario));
+    return replyMappedList(reply, items, mapVoluntario);
   });
 
   app.get("/voluntarios/:id", async (request, reply) => {
@@ -64,14 +65,14 @@ export const voluntariosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Voluntário não encontrado" });
     }
-    return reply.send(mapVoluntario(item));
+    return replyMapped(reply, item, mapVoluntario);
   });
 
   app.post("/voluntarios", async (request, reply) => {
     try {
       const body = createVoluntarioSchema.parse(request.body);
       const item = await createVoluntario(body, request.usuarioId!);
-      return reply.status(201).send(mapVoluntario(item));
+      return replyMapped(reply, item, mapVoluntario, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -97,7 +98,7 @@ export const voluntariosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Voluntário não encontrado" });
       }
-      return reply.send(mapVoluntario(item));
+      return replyMapped(reply, item, mapVoluntario);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -124,6 +125,6 @@ export const voluntariosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Voluntário não encontrado" });
     }
-    return reply.send(mapVoluntario(item));
+    return replyMapped(reply, item, mapVoluntario);
   });
 };
