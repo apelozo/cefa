@@ -23,6 +23,10 @@ import {
   updateEntrevistaAssistido,
 
 } from "../services/entrevistas-assistido.js";
+import {
+  EscolaridadeInativaError,
+  EscolaridadeNaoEncontradaError,
+} from "../services/escolaridades.js";
 
 import {
 
@@ -68,6 +72,13 @@ function handleEntrevistaError(
 
     });
 
+  }
+
+  if (
+    err instanceof EscolaridadeInativaError ||
+    err instanceof EscolaridadeNaoEncontradaError
+  ) {
+    return reply.status(400).send({ error: err.message });
   }
 
   if (

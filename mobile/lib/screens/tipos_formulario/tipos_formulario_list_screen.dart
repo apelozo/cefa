@@ -36,7 +36,8 @@ class _TiposFormularioListScreenState
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final items = await ref.read(apiClientProvider).listTiposFormulario();
+      final items =
+          await ref.read(apiClientProvider).listTiposFormulario(todos: true);
       if (mounted) setState(() => _tipos = items);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e.toString());

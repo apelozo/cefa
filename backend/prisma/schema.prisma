@@ -54,6 +54,30 @@ enum UrbanoRural {
 
 }
 
+enum EstadoCivilVoluntario {
+  CASADO
+  DIVORCIADO
+  SEPARADO
+  SOLTEIRO
+  VIUVO
+}
+
+enum TipoCasaAlunoCapacitacao {
+  PROPRIA
+  CEDIDA
+  ALUGUEL
+}
+
+enum DiaSemana {
+  DOMINGO
+  SEGUNDA_FEIRA
+  TERCA_FEIRA
+  QUARTA_FEIRA
+  QUINTA_FEIRA
+  SEXTA_FEIRA
+  SABADO
+}
+
 enum OcupacaoFamiliar {
   NAO_TRABALHA
   CONTA_PROPRIA
@@ -67,29 +91,6 @@ enum OcupacaoFamiliar {
   EMPREGADOR
   ESTAGIARIO
   APRENDIZ
-}
-
-enum EscolaridadeFamiliar {
-  NUNCA_FREQUENTOU_ESCOLA
-  CRECHE
-  EDUCACAO_INFANTIL
-  EF_1_ANO
-  EF_2_ANO
-  EF_3_ANO
-  EF_4_ANO
-  EF_5_ANO
-  EF_6_ANO
-  EF_7_ANO
-  EF_8_ANO
-  EF_9_ANO
-  EM_1_ANO
-  EM_2_ANO
-  EM_3_ANO
-  SUPERIOR_INCOMPLETO
-  SUPERIOR_COMPLETO
-  EJA_EF
-  EJA_EM
-  OUTROS
 }
 
 enum TipoDeficienciaFamiliar {
@@ -201,6 +202,10 @@ model TipoFormulario {
   perguntas  Pergunta[]
 
   submissoes Submissao[]
+
+  tiposUsuario TipoUsuarioTipoFormulario[]
+
+  usuarios     UsuarioTipoFormulario[]
 
 
 
@@ -315,8 +320,9 @@ model Cidade {
 
 
   pessoas Pessoa[]
-
-
+  voluntarios Voluntario[]
+  alunosCapNaturalidade AlunoCapacitacaoProfissional[] @relation("AlunoCapNaturalidade")
+  alunosCapEndereco AlunoCapacitacaoProfissional[] @relation("AlunoCapCidade")
 
   @@unique([nomeMunicipio, estado])
 
@@ -354,7 +360,178 @@ model Bairro {
 
 }
 
+model Escolaridade {
+  id                  String    @id @default(uuid()) @db.Uuid
+  codigo              Int       @unique
+  descricao           String
+  ativo               Boolean   @default(true)
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+  usuarioExclusaoId   String?   @map("usuario_exclusao_id") @db.Uuid
+  dataHoraExclusao    DateTime? @map("data_hora_exclusao") @db.Timestamptz(3)
 
+  condicoesEducacionais EntrevistaCondicaoEducacional[]
+  alunosCapacitacao AlunoCapacitacaoProfissional[]
+
+  @@map("escolaridades")
+}
+
+model Departamento {
+  id                  String    @id @default(uuid()) @db.Uuid
+  codigo              Int       @unique
+  descricao           String
+  ativo               Boolean   @default(true)
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  voluntarioHorarios VoluntarioDepartamentoHorario[]
+
+  @@map("departamentos")
+}
+
+model Curso {
+  id                  String    @id @default(uuid()) @db.Uuid
+  codigo              Int       @unique
+  descricao           String
+  ativo               Boolean   @default(true)
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  @@map("cursos")
+}
+
+model AlunoCapacitacaoProfissional {
+  id                        String                     @id @default(uuid()) @db.Uuid
+  nome                      String
+  nomeSocial                String?                    @map("nome_social")
+  estadoCivil               EstadoCivilVoluntario?     @map("estado_civil")
+  rg                        String?
+  orgaoExpedidor            String?                    @map("orgao_expedidor")
+  cpf                       String?                    @unique
+  dtNascimento              DateTime?                  @map("dt_nascimento") @db.Date
+  nacionalidade             String?
+  naturalidadeCodigo        Int?                       @map("naturalidade_codigo")
+  nomeMae                   String?                    @map("nome_mae")
+  nomePai                   String?                    @map("nome_pai")
+  escolaridadeCodigo        Int?                       @map("escolaridade_codigo")
+  nomeUltimaEscola          String?                    @map("nome_ultima_escola")
+  endereco                  String?
+  enderecoNumero            String?                    @map("endereco_numero")
+  bairro                    String?
+  cep                       String?
+  cidadeCodigo              Int?                       @map("cidade_codigo")
+  tipoCasa                  TipoCasaAlunoCapacitacao?  @map("tipo_casa")
+  valorAluguel              Decimal?                   @map("valor_aluguel") @db.Decimal(12, 2)
+  telefone                  String?
+  celular                   String?
+  telefoneRecado            String?                    @map("telefone_recado")
+  email                     String?
+  redeSocial                String?                    @map("rede_social")
+  jaFezCursoSenacSenai      Boolean                    @default(false) @map("ja_fez_curso_senac_senai")
+  cursoSenacSenaiDescricao  String?                    @map("curso_senac_senai_descricao")
+  cursoSenacSenaiAno        Int?                       @map("curso_senac_senai_ano")
+  encaminhamento            String?
+  telefoneEncaminhamento    String?                    @map("telefone_encaminhamento")
+  possuiNecessidadeEspecial Boolean                    @default(false) @map("possui_necessidade_especial")
+  qualNecessidade           String?                    @map("qual_necessidade")
+  fazAcompanhamentoMedico   Boolean                    @default(false) @map("faz_acompanhamento_medico")
+  tomaMedicacao             String?                    @map("toma_medicacao")
+  vacinacao                 String?
+  alergias                  String?
+  ativo                     Boolean                    @default(true)
+  usuarioInclusaoId         String?                    @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao          DateTime                   @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId        String?                    @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao         DateTime?                  @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  naturalidade     Cidade?                         @relation("AlunoCapNaturalidade", fields: [naturalidadeCodigo], references: [codigo], onDelete: Restrict)
+  cidade           Cidade?                         @relation("AlunoCapCidade", fields: [cidadeCodigo], references: [codigo], onDelete: Restrict)
+  escolaridade     Escolaridade?                   @relation(fields: [escolaridadeCodigo], references: [codigo], onDelete: Restrict)
+  rendasFamiliares AlunoCapacitacaoRendaFamiliar[]
+
+  @@map("alunos_capacitacao_profissional")
+}
+
+model AlunoCapacitacaoRendaFamiliar {
+  id                  String    @id @default(uuid()) @db.Uuid
+  alunoCapacitacaoId  String    @map("aluno_capacitacao_id") @db.Uuid
+  ordem               Int       @default(0)
+  nome                String
+  idade               Int?
+  renda               Decimal   @default(0) @db.Decimal(12, 2)
+  parentesco          String?
+  profissao           String?
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  alunoCapacitacao AlunoCapacitacaoProfissional @relation(fields: [alunoCapacitacaoId], references: [id], onDelete: Restrict)
+
+  @@map("aluno_capacitacao_renda_familiar")
+}
+
+model Voluntario {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  codigo                Int                     @unique
+  empresa               String?
+  funcao                String?                 @map("funcao")
+  estadoCivil           EstadoCivilVoluntario?  @map("estado_civil")
+  dtNascimento          DateTime?               @map("dt_nascimento") @db.Date
+  endereco              String?
+  enderecoNumero        String?                 @map("endereco_numero")
+  bairro                String?
+  cep                   String?
+  cidadeCodigo          Int?                    @map("cidade_codigo")
+  enderecoComplemento   String?                 @map("endereco_complemento")
+  rg                    String?
+  cpf                   String?                 @unique
+  cnh                   String?
+  celular               String?
+  telefoneResidencial   String?                 @map("telefone_residencial")
+  telefoneComercial     String?                 @map("telefone_comercial")
+  email                 String?
+  valorContribuicao     Decimal?                @map("valor_contribuicao") @db.Decimal(12, 2)
+  diaVencimento         Int?                    @map("dia_vencimento")
+  tempoTrabalhoCentro   Int?                    @map("tempo_trabalho_centro")
+  nome                  String
+  nomeCracha            String                  @map("nome_cracha")
+  fichaMedica           String?                 @map("ficha_medica") @db.VarChar(1000)
+  ativo                 Boolean                 @default(true)
+  usuarioInclusaoId     String?                 @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao      DateTime                @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId    String?                 @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao     DateTime?               @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  cidade             Cidade?                         @relation(fields: [cidadeCodigo], references: [codigo], onDelete: Restrict)
+  departamentoHorarios VoluntarioDepartamentoHorario[]
+
+  @@map("voluntarios")
+}
+
+model VoluntarioDepartamentoHorario {
+  id                  String    @id @default(uuid()) @db.Uuid
+  voluntarioId        String    @map("voluntario_id") @db.Uuid
+  departamentoCodigo  Int       @map("departamento_codigo")
+  diaSemana           DiaSemana @map("dia_semana")
+  horaInicio          DateTime  @map("hora_inicio") @db.Time(0)
+  horaTermino         DateTime  @map("hora_termino") @db.Time(0)
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+  voluntario   Voluntario   @relation(fields: [voluntarioId], references: [id], onDelete: Restrict)
+  departamento Departamento @relation(fields: [departamentoCodigo], references: [codigo], onDelete: Restrict)
+
+  @@map("voluntario_departamento_horarios")
+}
 
 model Pessoa {
 
@@ -496,20 +673,21 @@ model EntrevistaCondicaoTrabalho {
 }
 
 model EntrevistaCondicaoEducacional {
-  id                  String               @id @default(uuid()) @db.Uuid
-  entrevistaId        String               @map("entrevista_id") @db.Uuid
-  ordem               Int                  @default(0)
+  id                  String    @id @default(uuid()) @db.Uuid
+  entrevistaId        String    @map("entrevista_id") @db.Uuid
+  ordem               Int       @default(0)
   nome                String
   idade               Int
-  escolaridade        EscolaridadeFamiliar
-  sabeLerEscrever     Boolean              @default(false) @map("sabe_ler_escrever")
-  frequentaEscola     Boolean              @default(false) @map("frequenta_escola")
-  usuarioInclusaoId   String?              @map("usuario_inclusao_id") @db.Uuid
-  dataHoraInclusao    DateTime             @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
-  usuarioAlteracaoId  String?              @map("usuario_alteracao_id") @db.Uuid
-  dataHoraAlteracao   DateTime?            @map("data_hora_alteracao") @db.Timestamptz(3)
+  escolaridadeCodigo  Int       @map("escolaridade_codigo")
+  sabeLerEscrever     Boolean   @default(false) @map("sabe_ler_escrever")
+  frequentaEscola     Boolean   @default(false) @map("frequenta_escola")
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
 
-  entrevista EntrevistaAssistido @relation(fields: [entrevistaId], references: [id], onDelete: Restrict)
+  entrevista    EntrevistaAssistido @relation(fields: [entrevistaId], references: [id], onDelete: Restrict)
+  escolaridade  Escolaridade        @relation(fields: [escolaridadeCodigo], references: [codigo], onDelete: Restrict)
 
   @@map("entrevista_condicao_educacional")
 }
@@ -736,6 +914,8 @@ model TipoUsuario {
 
   permissoes TipoUsuarioPermissao[]
 
+  tiposFormulario TipoUsuarioTipoFormulario[]
+
 
 
   @@map("tipos_usuario")
@@ -760,6 +940,8 @@ model Usuario {
 
   ativo               Boolean  @default(true)
 
+  overrideTiposFormulario Boolean @default(false) @map("override_tipos_formulario")
+
   usuarioInclusaoId   String?  @map("usuario_inclusao_id") @db.Uuid
 
   dataHoraInclusao    DateTime @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
@@ -773,6 +955,8 @@ model Usuario {
   tipoUsuario TipoUsuario        @relation(fields: [tipoUsuarioId], references: [id], onDelete: Restrict)
 
   permissoes  UsuarioPermissao[]
+
+  tiposFormulario UsuarioTipoFormulario[]
 
 
 
@@ -857,6 +1041,70 @@ model UsuarioPermissao {
   @@unique([usuarioId, programaId])
 
   @@map("usuarios_permissoes")
+
+}
+
+
+
+model TipoUsuarioTipoFormulario {
+
+  id                  String    @id @default(uuid()) @db.Uuid
+
+  tipoUsuarioId       String    @map("tipo_usuario_id") @db.Uuid
+
+  tipoFormularioId    String    @map("tipo_formulario_id") @db.Uuid
+
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+
+
+  tipoUsuario    TipoUsuario    @relation(fields: [tipoUsuarioId], references: [id], onDelete: Restrict)
+
+  tipoFormulario TipoFormulario @relation(fields: [tipoFormularioId], references: [id], onDelete: Restrict)
+
+
+
+  @@unique([tipoUsuarioId, tipoFormularioId])
+
+  @@map("tipos_usuario_tipos_formulario")
+
+}
+
+
+
+model UsuarioTipoFormulario {
+
+  id                  String    @id @default(uuid()) @db.Uuid
+
+  usuarioId           String    @map("usuario_id") @db.Uuid
+
+  tipoFormularioId    String    @map("tipo_formulario_id") @db.Uuid
+
+  usuarioInclusaoId   String?   @map("usuario_inclusao_id") @db.Uuid
+
+  dataHoraInclusao    DateTime  @default(now()) @map("data_hora_inclusao") @db.Timestamptz(3)
+
+  usuarioAlteracaoId  String?   @map("usuario_alteracao_id") @db.Uuid
+
+  dataHoraAlteracao   DateTime? @map("data_hora_alteracao") @db.Timestamptz(3)
+
+
+
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  tipoFormulario TipoFormulario @relation(fields: [tipoFormularioId], references: [id], onDelete: Restrict)
+
+
+
+  @@unique([usuarioId, tipoFormularioId])
+
+  @@map("usuarios_tipos_formulario")
 
 }
 

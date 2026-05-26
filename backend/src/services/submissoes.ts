@@ -8,6 +8,7 @@ import {
 import { formatCpf, normalizeCpf } from "../lib/cpf.js";
 import { prisma } from "../lib/prisma.js";
 import type { CreateSubmissaoInput } from "../validators/submissoes.js";
+import { assertUsuarioAcessoTipoFormulario } from "./tipos-formulario-acesso.js";
 
 export class SubmissaoValidationError extends Error {
   constructor(
@@ -21,6 +22,7 @@ export class SubmissaoValidationError extends Error {
 
 export type ListSubmissoesFilters = {
   tipoFormularioId?: string;
+  tipoFormularioIds?: string[];
   pessoaId?: string;
   nome?: string;
   cpf?: string;
@@ -31,6 +33,11 @@ export async function listSubmissoes(filters: ListSubmissoesFilters = {}) {
 
   if (filters.tipoFormularioId) {
     where.tipoFormularioId = filters.tipoFormularioId;
+  } else if (filters.tipoFormularioIds) {
+    if (filters.tipoFormularioIds.length === 0) {
+      return [];
+    }
+    where.tipoFormularioId = { in: filters.tipoFormularioIds };
   }
   if (filters.pessoaId) {
     where.pessoaId = filters.pessoaId;
@@ -100,14 +107,16 @@ export async function createSubmissao(
     throw new SubmissaoValidationError("Tipo de formulário inativo");
   }
 
+  await assertUsuarioAcessoTipoFormulario(usuarioId, input.tipoFormularioId);
+
   const pessoa = await prisma.pessoa.findUnique({
     where: { id: input.pessoaId },
   });
   if (!pessoa) {
-    throw new SubmissaoValidationError("Pessoa não encontrada");
+    throw new SubmissaoValidationError("Assistido não encontrado");
   }
   if (!pessoa.ativo) {
-    throw new SubmissaoValidationError("Pessoa inativa");
+    throw new SubmissaoValidationError("Assistido inativo");
   }
 
   const perguntaMap = new Map(perguntas.map((p) => [p.id, p]));

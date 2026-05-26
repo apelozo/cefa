@@ -110,7 +110,7 @@ class _ConfirmacaoScreenState extends ConsumerState<ConfirmacaoScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Pessoa: ${widget.pessoaNome}',
+                    'Assistido: ${widget.pessoaNome}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.neutralGray,
                         ),
@@ -126,7 +126,7 @@ class _ConfirmacaoScreenState extends ConsumerState<ConfirmacaoScreen> {
               child: widget.respostas.isEmpty
                   ? Center(
                       child: Text(
-                        'Nenhuma resposta preenchida.\nO envio será gravado apenas com pessoa e formulário.',
+                        'Nenhuma resposta preenchida.\nO envio será gravado apenas com assistido e formulário.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: AppColors.neutralGray,

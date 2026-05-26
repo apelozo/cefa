@@ -1,13 +1,6 @@
 import { z } from "zod";
 
-const codigoSchema = z.coerce
-  .number({ invalid_type_error: "Código deve ser um número inteiro" })
-  .int("Código deve ser um número inteiro")
-  .positive("Código deve ser maior que zero")
-  .max(999999, "Código muito grande");
-
 export const createModuloSistemaSchema = z.object({
-  codigo: codigoSchema,
   nome: z.string().trim().min(1).max(200),
   descricao: z.string().trim().max(500).optional(),
   ordem: z.number().int().min(0).optional().default(0),

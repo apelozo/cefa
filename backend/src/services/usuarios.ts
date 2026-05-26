@@ -1,4 +1,5 @@
 import { PerfilTipoUsuario } from "@prisma/client";
+import { listProgramasParaPermissoes } from "./programas.js";
 import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { hashSenha } from "../lib/password.js";
@@ -105,6 +106,7 @@ export async function deleteUsuario(id: string) {
 
   await prisma.$transaction([
     prisma.usuarioPermissao.deleteMany({ where: { usuarioId: id } }),
+    prisma.usuarioTipoFormulario.deleteMany({ where: { usuarioId: id } }),
     prisma.usuario.delete({ where: { id } }),
   ]);
   return existing;
@@ -118,7 +120,7 @@ export async function getPermissoesUsuario(usuarioId: string) {
   if (!usuario) return null;
 
   const [programas, permissoes] = await Promise.all([
-    prisma.programa.findMany({ orderBy: { nome: "asc" } }),
+    listProgramasParaPermissoes(),
     prisma.usuarioPermissao.findMany({ where: { usuarioId } }),
   ]);
 

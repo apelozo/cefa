@@ -10,6 +10,7 @@ import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../programas/programa_form_screen.dart';
 
 class ModuloSistemaFormScreen extends ConsumerStatefulWidget {
   const ModuloSistemaFormScreen({super.key, this.modulo});
@@ -26,7 +27,6 @@ class ModuloSistemaFormScreen extends ConsumerStatefulWidget {
 class _ModuloSistemaFormScreenState
     extends ConsumerState<ModuloSistemaFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _codigoController;
   late final TextEditingController _nomeController;
   late final TextEditingController _descricaoController;
   late final TextEditingController _ordemController;
@@ -40,10 +40,7 @@ class _ModuloSistemaFormScreenState
   @override
   void initState() {
     super.initState();
-    _enterFocus = FormEnterFocus.count(widget.isEditing ? 3 : 4);
-    _codigoController = TextEditingController(
-      text: widget.modulo?.codigo.toString() ?? '',
-    );
+    _enterFocus = FormEnterFocus.count(3);
     _nomeController = TextEditingController(text: widget.modulo?.nome ?? '');
     _descricaoController =
         TextEditingController(text: widget.modulo?.descricao ?? '');
@@ -79,7 +76,6 @@ class _ModuloSistemaFormScreenState
   @override
   void dispose() {
     _enterFocus.dispose();
-    _codigoController.dispose();
     _nomeController.dispose();
     _descricaoController.dispose();
     _ordemController.dispose();
@@ -92,15 +88,6 @@ class _ModuloSistemaFormScreenState
     if (ordem == null || ordem < 0) {
       showErrorSnackBar(context, 'Informe uma ordem válida (número ≥ 0)');
       return;
-    }
-
-    int? codigoNovo;
-    if (!widget.isEditing) {
-      codigoNovo = int.tryParse(_codigoController.text.trim());
-      if (codigoNovo == null || codigoNovo < 1) {
-        showErrorSnackBar(context, 'Informe um código numérico maior que zero');
-        return;
-      }
     }
 
     setState(() => _saving = true);
@@ -125,7 +112,7 @@ class _ModuloSistemaFormScreenState
         moduloSalvo = await api.createModuloSistema(
           ModuloSistema(
             id: '',
-            codigo: codigoNovo!,
+            codigo: 0,
             nome: _nomeController.text.trim(),
             descricao: descricao.isEmpty ? null : descricao,
             ordem: ordem,
@@ -164,49 +151,22 @@ class _ModuloSistemaFormScreenState
           child: ListView(
             padding: AppLayout.screenPadding,
             children: [
-              if (!widget.isEditing)
-                TextFormField(
-                  controller: _codigoController,
-                  focusNode: _enterFocus.fields[0],
-                  textInputAction: _enterFocus.inputAction(0),
-                  onFieldSubmitted: (_) => _enterFocus.onSubmitted(0),
-                  onEditingComplete: _enterFocus.editingComplete(0),
-                  decoration: const InputDecoration(
-                    labelText: 'Código',
-                    hintText: 'ex.: 3',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Código é obrigatório';
-                    }
-                    final n = int.tryParse(v.trim());
-                    if (n == null || n < 1) {
-                      return 'Informe um número inteiro maior que zero';
-                    }
-                    return null;
-                  },
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                )
-              else
+              if (widget.isEditing)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
                     'Código',
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
-                  subtitle: Text(_codigoController.text),
+                  subtitle: Text(widget.modulo!.codigo.toString()),
                 ),
-              const SizedBox(height: 12),
+              if (widget.isEditing) const SizedBox(height: 12),
               TextFormField(
                 controller: _nomeController,
-                focusNode: _enterFocus.fields[widget.isEditing ? 0 : 1],
-                textInputAction:
-                    _enterFocus.inputAction(widget.isEditing ? 0 : 1),
-                onFieldSubmitted: (_) =>
-                    _enterFocus.onSubmitted(widget.isEditing ? 0 : 1),
-                onEditingComplete:
-                    _enterFocus.editingComplete(widget.isEditing ? 0 : 1),
+                focusNode: _enterFocus.fields[0],
+                textInputAction: _enterFocus.inputAction(0),
+                onFieldSubmitted: (_) => _enterFocus.onSubmitted(0),
+                onEditingComplete: _enterFocus.editingComplete(0),
                 decoration: const InputDecoration(labelText: 'Nome'),
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Nome é obrigatório' : null,
@@ -214,11 +174,9 @@ class _ModuloSistemaFormScreenState
               const SizedBox(height: 12),
               TextFormField(
                 controller: _descricaoController,
-                focusNode: _enterFocus.fields[widget.isEditing ? 1 : 2],
-                textInputAction:
-                    _enterFocus.inputAction(widget.isEditing ? 1 : 2),
-                onFieldSubmitted: (_) =>
-                    _enterFocus.onSubmitted(widget.isEditing ? 1 : 2),
+                focusNode: _enterFocus.fields[1],
+                textInputAction: _enterFocus.inputAction(1),
+                onFieldSubmitted: (_) => _enterFocus.onSubmitted(1),
                 decoration: const InputDecoration(
                   labelText: 'Descrição (opcional)',
                 ),
@@ -227,13 +185,10 @@ class _ModuloSistemaFormScreenState
               const SizedBox(height: 12),
               TextFormField(
                 controller: _ordemController,
-                focusNode: _enterFocus.fields[widget.isEditing ? 2 : 3],
-                textInputAction:
-                    _enterFocus.inputAction(widget.isEditing ? 2 : 3),
-                onFieldSubmitted: (_) =>
-                    _enterFocus.onSubmitted(widget.isEditing ? 2 : 3),
-                onEditingComplete:
-                    _enterFocus.editingComplete(widget.isEditing ? 2 : 3),
+                focusNode: _enterFocus.fields[2],
+                textInputAction: _enterFocus.inputAction(2),
+                onFieldSubmitted: (_) => _enterFocus.onSubmitted(2),
+                onEditingComplete: _enterFocus.editingComplete(2),
                 decoration: const InputDecoration(labelText: 'Ordem no menu'),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -255,9 +210,27 @@ class _ModuloSistemaFormScreenState
                 onChanged: (v) => setState(() => _ativo = v),
               ),
               const SizedBox(height: 24),
-              Text(
-                'Programas do módulo',
-                style: Theme.of(context).textTheme.titleLarge,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Programas do módulo',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final criado = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => const ProgramaFormScreen(),
+                        ),
+                      );
+                      if (criado == true) _loadProgramas();
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Novo programa'),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               if (_loadingProgramas)

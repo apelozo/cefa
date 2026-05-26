@@ -4,6 +4,11 @@ abstract final class Programas {
   static const pessoas = 'pessoas';
   static const cidades = 'cidades';
   static const bairros = 'bairros';
+  static const escolaridades = 'escolaridades';
+  static const departamentos = 'departamentos';
+  static const cursos = 'cursos';
+  static const alunosCapacitacao = 'alunos_capacitacao';
+  static const voluntarios = 'voluntarios';
   static const submissoes = 'submissoes';
   static const lancamento = 'lancamento';
   static const entrevistaAssistido = 'entrevista_assistido';

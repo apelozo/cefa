@@ -56,7 +56,7 @@ class EntrevistaCondicaoSaudeTab extends StatelessWidget {
       ),
       children: [
         Text(
-          'Caso haja presença de pessoa com deficiência na familia, preencha o quadro abaixo',
+          'Caso haja presença de integrante com deficiência na família, preencha o quadro abaixo',
           style: textTheme.bodyLarge?.copyWith(
             fontFamily: AppTheme.fontFamily,
             fontWeight: FontWeight.w600,

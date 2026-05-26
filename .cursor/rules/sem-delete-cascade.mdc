@@ -20,7 +20,7 @@ alwaysApply: true
 |----------|---------------------|
 | Tipo de formulário | Lançamentos (submissões) ou perguntas vinculadas |
 | Pergunta | Respostas vinculadas |
-| Pessoa | Lançamentos (submissões) ou entrevistas com o assistido vinculadas |
+| Assistido (`pessoas`) | Lançamentos (submissões) ou entrevistas vinculadas |
 
 ## Exceção
 

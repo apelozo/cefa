@@ -2,6 +2,8 @@
 
 Documentação da estratégia de geração de PDF no Cefa: o que está implementado hoje e o modelo recomendado para **relatórios com layout institucional fixo** (cada pergunta em posição definida no papel).
 
+Na UI, o cadastro vinculado a submissões e entrevistas é **Assistido**; no PDF da entrevista as chaves do mapa continuam `pessoa.*` (tabela `pessoas`). O PDF de submissão em fluxo usa o rótulo **Assistido** no cabeçalho. Ver [Terminologia](./modelo-dados.md#terminologia-assistido--pessoa).
+
 ---
 
 ## 1. Contexto
@@ -9,8 +11,8 @@ Documentação da estratégia de geração de PDF no Cefa: o que está implement
 | Conceito | Descrição |
 |----------|-----------|
 | **Perguntas** | Cadastradas por **tipo de formulário**, com `tipoCampo`, `ordem` e opções (se LISTA). Estrutura **dinâmica** no banco. |
-| **Lançamento (submissão)** | Um envio com `pessoaId`, `tipoFormularioId` e **respostas opcionais** (só perguntas preenchidas são gravadas; `respostas` pode ser vazio). |
-| **Relatório** | PDF (ou outro formato) gerado a partir de uma submissão (e dados da pessoa), para consulta, arquivo ou impressão. |
+| **Lançamento (submissão)** | Um envio com `pessoaId` (assistido), `tipoFormularioId` e **respostas opcionais** (só perguntas preenchidas são gravadas; `respostas` pode ser vazio). |
+| **Relatório** | PDF (ou outro formato) gerado a partir de uma submissão (e dados do **assistido**), para consulta, arquivo ou impressão. |
 
 O desafio: o cadastro de perguntas é flexível, mas alguns relatórios precisam seguir um **padrão visual rígido** — como um formulário impresso oficial, com cada resposta em um lugar específico da folha.
 
@@ -156,7 +158,7 @@ O gerador, para cada chave, localiza `respostas.where((r) => r.perguntaId == cha
 | **Mapa** | Chaves: `pessoa.*`, `entrevista.*`, `forma.*`, `programas.*`, `composicao.linhaN.*`, `trabalho.linhaN.*`, `educacional.linhaN.*`, `deficiencia.linhaN.*`, `gestante.linhaN.*`, `saude.*` |
 | **Gerador** | `mobile/lib/utils/entrevista_pdf.dart` (+ `entrevista_layout_config.dart`, `entrevista_pdf_field_resolver.dart`, `pdf_fonts.dart`) |
 | **Tela** | Consulta da entrevista → ícone PDF no AppBar (visualizar / baixar) |
-| **Dados** | Antes de gerar, **recarrega** `GET /entrevistas-assistido/:id` e mescla `programasSociais` da tela; `pessoa` **completa** (mesmo formato de `GET /pessoas/:id`) + filhos da entrevista |
+| **Dados** | Antes de gerar, **recarrega** `GET /entrevistas-assistido/:id` e mescla `programasSociais` da tela; objeto `pessoa` com assistido **completo** (mesmo formato de `GET /pessoas/:id`) + filhos da entrevista |
 | **Entrega** | Reutiliza `submissao_pdf_delivery*.dart` |
 | **Numeração** | `Pág. N` no canto superior direito (`PdfPageNumber.overlaySuperiorDireito` no `Stack` de cada página) |
 | **Fontes** | Open Sans via `PdfFonts.ensureInitialized()` (§11) |
@@ -212,7 +214,7 @@ Instruções de medição (Inkscape/Figma): [mobile/assets/relatorios/README.md]
 
 | Grupo | Exemplos |
 |-------|----------|
-| Pessoa | `pessoa.nome`, `pessoa.cpfFormatado`, `pessoa.municipioExibicao`, `pessoa.urbanoRuralRotulo` |
+| Assistido (chaves `pessoa.*`) | `pessoa.nome`, `pessoa.cpfFormatado`, `pessoa.municipioExibicao`, `pessoa.urbanoRuralRotulo` |
 | Entrevista | `entrevista.dataEntrevista`, `entrevista.outrosTexto` |
 | Assistência | `forma.DEMANDA_ESPONTANEA`, … `forma.OUTROS` |
 | Programas sociais | `programas.bolsaFamilia`, `programas.peti`, `programas.bpc`, `programas.outrosProgramas`, `programas.outrosProgramasSociais`, `programas.cras`, `programas.centroPop`, `programas.conselhoTutelar`, `programas.ubs`, `programas.creas`, `programas.caps`, `programas.craf`, `programas.outrosAtendimentoFamilia`, `programas.outrosOrgaosSociais` (marcadores = checkbox; textos = descrição de Outros) |
@@ -243,9 +245,9 @@ Renda per capita no PDF segue a mesma regra da tela: total ÷ integrantes da com
 
 ---
 
-## 7. Outros relatórios (pessoa)
+## 7. Outros relatórios (assistido)
 
-O **cadastro de pessoa** ainda não possui PDF institucional; pode reutilizar o mesmo padrão fundo + mapa no futuro.
+O **cadastro de assistido** (`/pessoas`) ainda não possui PDF institucional; pode reutilizar o mesmo padrão fundo + mapa no futuro.
 
 ---
 
@@ -263,7 +265,7 @@ O **cadastro de pessoa** ainda não possui PDF institucional; pode reutilizar o 
 | `mobile/lib/models/entrevista_programas_sociais.dart` | Modelo `programasSociais` da API |
 | `mobile/assets/relatorios/` | Fundos PDF/PNG + `entrevista_assistido_v1.yaml` |
 | `mobile/lib/utils/resposta_display.dart` | Formatação de respostas dinâmicas |
-| `docs/modelo-dados.md` | Entrevista, pessoa, submissões |
+| `docs/modelo-dados.md` | Entrevista, assistido (`pessoas`), submissões |
 | `docs/api.md` | `GET /entrevistas-assistido/:id`, `GET /submissoes/:id` |
 | `IdentidadeGrafica.md` | Cores e tipografia |
 

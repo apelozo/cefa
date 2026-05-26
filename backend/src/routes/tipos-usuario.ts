@@ -12,10 +12,15 @@ import {
   updateTipoUsuario,
 } from "../services/tipos-usuario.js";
 import {
+  getTiposFormularioAcessoTipoUsuario,
+  setTiposFormularioAcessoTipoUsuario,
+} from "../services/tipos-formulario-acesso.js";
+import {
   createTipoUsuarioSchema,
   permissoesBodySchema,
   updateTipoUsuarioSchema,
 } from "../validators/tipos-usuario.js";
+import { tiposFormularioAcessoBodySchema } from "../validators/tipos-formulario-acesso.js";
 
 export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
   app.get("/tipos-usuario", async (request, reply) => {
@@ -121,6 +126,42 @@ export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
         });
       }
       if (err instanceof Error && err.message.includes("permissão total")) {
+        return reply.status(400).send({ error: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.get("/tipos-usuario/:id/tipos-formulario-acesso", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const data = await getTiposFormularioAcessoTipoUsuario(id);
+    if (!data) {
+      return reply.status(404).send({ error: "Tipo de usuário não encontrado" });
+    }
+    return reply.send(data);
+  });
+
+  app.put("/tipos-usuario/:id/tipos-formulario-acesso", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const body = tiposFormularioAcessoBodySchema.parse(request.body);
+      const data = await setTiposFormularioAcessoTipoUsuario(
+        id,
+        body,
+        request.usuarioId!,
+      );
+      if (!data) {
+        return reply.status(404).send({ error: "Tipo de usuário não encontrado" });
+      }
+      return reply.send(data);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        return reply.status(400).send({
+          error: "Validação falhou",
+          details: err.flatten(),
+        });
+      }
+      if (err instanceof Error && err.message.includes("acesso a todos")) {
         return reply.status(400).send({ error: err.message });
       }
       throw err;

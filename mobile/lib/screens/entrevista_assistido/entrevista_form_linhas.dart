@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../constants/escolaridade_familiar.dart';
 import '../../constants/ocupacao_familiar.dart';
 import '../../constants/resposta_sim_nao.dart';
 import '../../constants/tipo_deficiencia_familiar.dart';
@@ -165,7 +164,8 @@ class CondicaoEducacionalLinha {
   CondicaoEducacionalLinha.fromItem(EntrevistaCondicaoEducacional item)
       : nomeSelecionado = item.nome,
         idade = TextEditingController(text: item.idade.toString()),
-        escolaridade = EscolaridadeFamiliar.fromApi(item.escolaridade),
+        escolaridadeCodigo = item.escolaridadeCodigo,
+        escolaridadeRotulo = item.escolaridadeRotulo,
         sabeLerEscrever = item.sabeLerEscrever,
         frequentaEscola = item.frequentaEscola,
         focusIdade = FocusNode();
@@ -173,21 +173,22 @@ class CondicaoEducacionalLinha {
   String? nomeSelecionado;
   final TextEditingController idade;
   final FocusNode focusIdade;
-  EscolaridadeFamiliar? escolaridade;
+  int? escolaridadeCodigo;
+  String? escolaridadeRotulo;
   bool sabeLerEscrever = false;
   bool frequentaEscola = false;
 
   bool get completamenteVazia =>
       (nomeSelecionado == null || nomeSelecionado!.trim().isEmpty) &&
       idade.text.trim().isEmpty &&
-      escolaridade == null &&
+      escolaridadeCodigo == null &&
       !sabeLerEscrever &&
       !frequentaEscola;
 
   bool get preenchida =>
       (nomeSelecionado != null && nomeSelecionado!.trim().isNotEmpty) ||
       idade.text.trim().isNotEmpty ||
-      escolaridade != null ||
+      escolaridadeCodigo != null ||
       sabeLerEscrever ||
       frequentaEscola;
 
@@ -195,13 +196,13 @@ class CondicaoEducacionalLinha {
     if (nomeSelecionado == null || nomeSelecionado!.trim().isEmpty) {
       return null;
     }
-    if (escolaridade == null) return null;
+    if (escolaridadeCodigo == null) return null;
     final idadeNum = int.tryParse(idade.text.trim());
     if (idadeNum == null || idadeNum < 0 || idadeNum > 150) return null;
     return EntrevistaCondicaoEducacional(
       nome: nomeSelecionado!.trim(),
       idade: idadeNum,
-      escolaridade: escolaridade!.apiValue,
+      escolaridadeCodigo: escolaridadeCodigo!,
       sabeLerEscrever: sabeLerEscrever,
       frequentaEscola: frequentaEscola,
     );

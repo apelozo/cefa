@@ -1,7 +1,7 @@
 /// Configuração da tela reutilizável de pesquisa de pessoas.
 class PessoasSearchArgs {
   const PessoasSearchArgs({
-    this.title = 'Pesquisar pessoa',
+    this.title = 'Pesquisar assistido',
     this.subtitle,
     this.onlyAtivas = true,
   });

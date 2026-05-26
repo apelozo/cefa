@@ -271,7 +271,8 @@ class EntrevistaPdfFieldResolver {
       case 'idade':
         return linha.idade.toString();
       case 'escolaridade':
-        return linha.escolaridadeEnum?.rotulo ?? linha.escolaridade;
+        return linha.escolaridadeRotulo ??
+            linha.escolaridadeCodigo.toString();
       default:
         return null;
     }

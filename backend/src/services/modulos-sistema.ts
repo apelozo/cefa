@@ -40,13 +40,25 @@ export async function getModuloSistemaById(id: string) {
   });
 }
 
+async function nextCodigoModuloSistema(): Promise<number> {
+  const agg = await prisma.moduloSistema.aggregate({
+    _max: { codigo: true },
+  });
+  return (agg._max.codigo ?? 0) + 1;
+}
+
 export async function createModuloSistema(
   data: CreateModuloSistemaInput,
   usuarioId: string,
 ) {
+  const codigo = await nextCodigoModuloSistema();
   return prisma.moduloSistema.create({
     data: {
-      ...data,
+      codigo,
+      nome: data.nome,
+      descricao: data.descricao,
+      ordem: data.ordem,
+      ativo: data.ativo,
       ...auditInclusao(usuarioId),
     },
   });

@@ -1,11 +1,10 @@
-import '../constants/escolaridade_familiar.dart';
-
 class EntrevistaCondicaoEducacional {
   const EntrevistaCondicaoEducacional({
     this.id,
     required this.nome,
     required this.idade,
-    required this.escolaridade,
+    required this.escolaridadeCodigo,
+    this.escolaridadeRotulo,
     this.sabeLerEscrever = false,
     this.frequentaEscola = false,
     this.ordem = 0,
@@ -14,17 +13,24 @@ class EntrevistaCondicaoEducacional {
   final String? id;
   final String nome;
   final int idade;
-  final String escolaridade;
+  final int escolaridadeCodigo;
+  final String? escolaridadeRotulo;
   final bool sabeLerEscrever;
   final bool frequentaEscola;
   final int ordem;
 
   factory EntrevistaCondicaoEducacional.fromJson(Map<String, dynamic> json) {
+    final codigoRaw = json['escolaridadeCodigo'];
+    final codigo = codigoRaw is int
+        ? codigoRaw
+        : int.parse(codigoRaw.toString());
+
     return EntrevistaCondicaoEducacional(
       id: json['id'] as String?,
       nome: json['nome'] as String,
       idade: json['idade'] as int,
-      escolaridade: json['escolaridade'] as String,
+      escolaridadeCodigo: codigo,
+      escolaridadeRotulo: json['escolaridadeRotulo'] as String?,
       sabeLerEscrever: json['sabeLerEscrever'] as bool? ?? false,
       frequentaEscola: json['frequentaEscola'] as bool? ?? false,
       ordem: json['ordem'] as int? ?? 0,
@@ -34,11 +40,8 @@ class EntrevistaCondicaoEducacional {
   Map<String, dynamic> toJson() => {
         'nome': nome,
         'idade': idade,
-        'escolaridade': escolaridade,
+        'escolaridadeCodigo': escolaridadeCodigo,
         'sabeLerEscrever': sabeLerEscrever,
         'frequentaEscola': frequentaEscola,
       };
-
-  EscolaridadeFamiliar? get escolaridadeEnum =>
-      EscolaridadeFamiliar.fromApi(escolaridade);
 }

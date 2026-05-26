@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../constants/escolaridade_familiar.dart';
+import '../../models/escolaridade.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_layout.dart';
 import '../../theme/app_theme.dart';
@@ -17,6 +17,7 @@ class EntrevistaCondicaoEducacionalTab extends StatelessWidget {
     this.readOnly = false,
     required this.linhas,
     required this.nomesDisponiveis,
+    required this.escolaridades,
     required this.onAdicionar,
     required this.onRemover,
     required this.onChanged,
@@ -26,6 +27,7 @@ class EntrevistaCondicaoEducacionalTab extends StatelessWidget {
   final bool readOnly;
   final List<CondicaoEducacionalLinha> linhas;
   final List<String> nomesDisponiveis;
+  final List<Escolaridade> escolaridades;
   final VoidCallback onAdicionar;
   final void Function(int index) onRemover;
   final VoidCallback onChanged;
@@ -43,6 +45,15 @@ class EntrevistaCondicaoEducacionalTab extends StatelessWidget {
         16,
       ),
       children: [
+        if (!readOnly && escolaridades.isEmpty)
+          Text(
+            'Cadastre escolaridades em Cadastrar escolaridades (módulo Formulários) '
+            'para preencher esta aba.',
+            style: textTheme.bodyMedium?.copyWith(
+              fontFamily: AppTheme.fontFamily,
+              color: AppColors.neutralGray,
+            ),
+          ),
         if (nomesDisponiveis.isEmpty)
           Text(
             'Selecione o assistido e, se necessário, cadastre integrantes na aba Composição Familiar.',
@@ -149,34 +160,60 @@ class EntrevistaCondicaoEducacionalTab extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<EscolaridadeFamiliar>(
-                      key: ValueKey('educ-esc-${linha.escolaridade}-$i'),
-                      initialValue: linha.escolaridade,
-                      decoration:
-                          const InputDecoration(labelText: 'Escolaridade'),
-                      items: EscolaridadeFamiliar.values
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(
-                                e.rotulo,
-                                style: const TextStyle(
-                                  fontFamily: AppTheme.fontFamily,
-                                  fontSize: 14,
+                    if (readOnly)
+                      InputDecorator(
+                        decoration:
+                            const InputDecoration(labelText: 'Escolaridade'),
+                        child: Text(
+                          linha.escolaridadeRotulo ??
+                              (linha.escolaridadeCodigo?.toString() ?? '—'),
+                          style: const TextStyle(
+                            fontFamily: AppTheme.fontFamily,
+                            fontSize: 14,
+                          ),
+                        ),
+                      )
+                    else
+                      DropdownButtonFormField<int>(
+                        key: ValueKey(
+                          'educ-esc-${linha.escolaridadeCodigo}-$i',
+                        ),
+                        initialValue: linha.escolaridadeCodigo != null &&
+                                escolaridades.any(
+                                  (e) => e.codigo == linha.escolaridadeCodigo,
+                                )
+                            ? linha.escolaridadeCodigo
+                            : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Escolaridade',
+                        ),
+                        items: escolaridades
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.codigo,
+                                child: Text(
+                                  e.descricao,
+                                  style: const TextStyle(
+                                    fontFamily: AppTheme.fontFamily,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: readOnly
-                          ? null
-                          : (v) {
-                              linha.escolaridade = v;
-                              onChanged();
-                            },
-                      validator: (v) =>
-                          v == null ? 'Selecione a escolaridade' : null,
-                    ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          linha.escolaridadeCodigo = v;
+                          for (final e in escolaridades) {
+                            if (e.codigo == v) {
+                              linha.escolaridadeRotulo = e.descricao;
+                              break;
+                            }
+                          }
+                          onChanged();
+                        },
+                        validator: (v) =>
+                            v == null ? 'Selecione a escolaridade' : null,
+                      ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,

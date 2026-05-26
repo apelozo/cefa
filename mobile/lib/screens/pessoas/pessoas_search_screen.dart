@@ -286,7 +286,7 @@ class _PessoasSearchScreenState extends ConsumerState<PessoasSearchScreen> {
         child: Padding(
           padding: AppLayout.screenPadding,
           child: Text(
-            'Nenhuma pessoa encontrada.',
+            'Nenhum assistido encontrado.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge,
           ),

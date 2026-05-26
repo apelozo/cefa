@@ -8,6 +8,11 @@ import '../screens/liberacao/liberacao_usuario_screen.dart';
 import '../screens/modulos_sistema/modulos_sistema_list_screen.dart';
 import '../screens/perguntas/perguntas_list_screen.dart';
 import '../screens/bairros/bairros_list_screen.dart';
+import '../screens/departamentos/departamentos_list_screen.dart';
+import '../screens/cursos/cursos_list_screen.dart';
+import '../screens/alunos_capacitacao/alunos_capacitacao_list_screen.dart';
+import '../screens/voluntarios/voluntarios_list_screen.dart';
+import '../screens/escolaridades/escolaridades_list_screen.dart';
 import '../screens/cidades/cidades_list_screen.dart';
 import '../screens/pessoas/pessoas_list_screen.dart';
 import '../screens/submissoes/submissoes_list_screen.dart';
@@ -47,7 +52,7 @@ abstract final class HomeMenuRegistry {
     ),
     Programas.pessoas: HomeMenuEntry(
       icon: Icons.person_outline,
-      label: 'Cadastrar pessoas',
+      label: 'Cadastrar assistidos',
       subtitle: 'Nome, data de nascimento, CPF e RG',
       screen: PessoasListScreen(),
     ),
@@ -63,10 +68,40 @@ abstract final class HomeMenuRegistry {
       subtitle: 'Código e nome do bairro',
       screen: BairrosListScreen(),
     ),
+    Programas.escolaridades: HomeMenuEntry(
+      icon: Icons.school_outlined,
+      label: 'Cadastrar escolaridades',
+      subtitle: 'Código e descrição para a entrevista',
+      screen: EscolaridadesListScreen(),
+    ),
+    Programas.departamentos: HomeMenuEntry(
+      icon: Icons.apartment_outlined,
+      label: 'Cadastrar departamentos',
+      subtitle: 'Código e descrição do departamento',
+      screen: DepartamentosListScreen(),
+    ),
+    Programas.cursos: HomeMenuEntry(
+      icon: Icons.menu_book_outlined,
+      label: 'Cadastrar cursos',
+      subtitle: 'Código e descrição do curso',
+      screen: CursosListScreen(),
+    ),
+    Programas.alunosCapacitacao: HomeMenuEntry(
+      icon: Icons.school_outlined,
+      label: 'Alunos de Capacitação Profissional',
+      subtitle: 'Cadastro completo com renda familiar',
+      screen: AlunosCapacitacaoListScreen(),
+    ),
+    Programas.voluntarios: HomeMenuEntry(
+      icon: Icons.volunteer_activism_outlined,
+      label: 'Cadastrar voluntários',
+      subtitle: 'Dados pessoais, endereço e contribuição',
+      screen: VoluntariosListScreen(),
+    ),
     Programas.lancamento: HomeMenuEntry(
       icon: Icons.assignment_outlined,
-      label: 'Lançamento',
-      subtitle: 'Tipo de formulário, pessoa e respostas',
+      label: 'Responder Questionários',
+      subtitle: 'Tipo de formulário, assistido e respostas',
       screen: LancamentoTipoScreen(),
     ),
     Programas.entrevistaAssistido: HomeMenuEntry(

@@ -1,6 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
+import { temAcessoPrograma } from "../services/permissoes.js";
+import {
+  assertUsuarioAcessoTipoFormulario,
+  TipoFormularioAcessoNegadoError,
+} from "../services/tipos-formulario-acesso.js";
 import {
   createTipoFormulario,
   getTipoFormularioById,
@@ -16,12 +21,25 @@ import {
 
 export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
   app.get("/tipos-formulario", async (request, reply) => {
-    const query = request.query as { ativo?: string };
+    const query = request.query as { ativo?: string; todos?: string };
     let ativo: boolean | undefined;
     if (query.ativo === "true") ativo = true;
     else if (query.ativo === "false") ativo = false;
 
-    const items = await listTiposFormulario(ativo);
+    const todos = query.todos === "true";
+    if (todos && !request.isAdmin) {
+      const map = request.permissaoMap;
+      if (!map || !temAcessoPrograma(map, "tipos_formulario")) {
+        return reply.status(403).send({
+          error: "Sem permissão para listar todos os tipos de formulário",
+        });
+      }
+    }
+
+    const items = await listTiposFormulario(request.usuarioId!, {
+      ativo,
+      todos,
+    });
     return reply.send(items.map(mapTipoFormulario));
   });
 
@@ -31,6 +49,23 @@ export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Tipo de formulário não encontrado" });
     }
+
+    const cadastroAdmin =
+      request.isAdmin ||
+      (request.permissaoMap &&
+        temAcessoPrograma(request.permissaoMap, "tipos_formulario"));
+
+    if (!cadastroAdmin) {
+      try {
+        await assertUsuarioAcessoTipoFormulario(request.usuarioId!, id);
+      } catch (err) {
+        if (err instanceof TipoFormularioAcessoNegadoError) {
+          return reply.status(403).send({ error: err.message });
+        }
+        throw err;
+      }
+    }
+
     return reply.send(mapTipoFormulario(item));
   });
 

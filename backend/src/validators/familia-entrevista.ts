@@ -1,5 +1,4 @@
 import {
-  EscolaridadeFamiliar,
   OcupacaoFamiliar,
   RespostaSimNao,
   TipoDeficienciaFamiliar,
@@ -7,7 +6,6 @@ import {
 import { z } from "zod";
 import { parseDataBr } from "../lib/campo.js";
 import { isValidCpf, normalizeCpf } from "../lib/cpf.js";
-import { ESCOLARIDADES_FAMILIAR } from "../lib/escolaridade-familiar.js";
 import { OCUPACOES_FAMILIAR } from "../lib/ocupacao-familiar.js";
 import { RESPOSTAS_SIM_NAO } from "../lib/resposta-sim-nao.js";
 import { TIPOS_DEFICIENCIA_FAMILIAR } from "../lib/tipo-deficiencia-familiar.js";
@@ -16,11 +14,6 @@ import { emptyToNull, parseMoedaBr } from "../lib/pessoa-campos.js";
 const OCUPACAO_VALUES = OCUPACOES_FAMILIAR.map((o) => o.valor) as [
   OcupacaoFamiliar,
   ...OcupacaoFamiliar[],
-];
-
-const ESCOLARIDADE_VALUES = ESCOLARIDADES_FAMILIAR.map((e) => e.valor) as [
-  EscolaridadeFamiliar,
-  ...EscolaridadeFamiliar[],
 ];
 
 const TIPO_DEFICIENCIA_VALUES = TIPOS_DEFICIENCIA_FAMILIAR.map((t) => t.valor) as [
@@ -121,9 +114,19 @@ export const condicaoEducacionalItemSchema = z.object({
       }
       return n;
     }),
-  escolaridade: z.enum(ESCOLARIDADE_VALUES, {
-    errorMap: () => ({ message: "Escolaridade inválida" }),
-  }),
+  escolaridadeCodigo: z
+    .union([z.number(), z.string()])
+    .transform((v, ctx) => {
+      const n = typeof v === "number" ? v : parseInt(String(v).trim(), 10);
+      if (!Number.isFinite(n) || n < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Código de escolaridade inválido",
+        });
+        return z.NEVER;
+      }
+      return n;
+    }),
   sabeLerEscrever: z.boolean().optional().default(false),
   frequentaEscola: z.boolean().optional().default(false),
 });

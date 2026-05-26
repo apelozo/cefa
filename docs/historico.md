@@ -62,5 +62,21 @@
 | Entrevista — gestantes múltiplas | Tabela `entrevista_gestante_familiar`; API `gestantesFamilia[]`; UI lista com Adicionar/Remover; migration `20260520100000` |
 | Entrevista — PDF gestantes | Chaves `gestante.linhaN.*` no YAML; resolvedor `_gestanteLinha`; legado `saude.gestante*` = 1ª gestante |
 | Entrevista — PDF booleanos | Campos lógicos com caixas Sim/Não no molde: sufixos `.SIM` / `.NAO` no YAML (`educacional`, `deficiencia`, `saude`, `gestante`) |
+| Documentação — deploy Render | [deploy-render.md](./deploy-render.md): Web Service (`backend/`), Neon/`pgbouncer=true`, `JWT_SECRET`, `ADMIN_INITIAL_PASSWORD`, Flutter `API_BASE_URL` |
+| API em produção (Render) | `https://cefa-api.onrender.com` — health, login e app com `--dart-define=API_BASE_URL` documentados em [deploy-render.md](./deploy-render.md) |
+| Terminologia Assistido | Conceito de negócio **assistido** na UI e docs; banco/API/código permanecem `pessoas` / `pessoaId`; programa `pessoas` → nome **Cadastrar assistidos**; rótulos em telas, PDF de submissão e mensagens da API |
+| Programa Responder Questionários | Menu e liberação de acessos: programa `lancamento` exibe **Responder Questionários** (antes “Lançamento”); código e rota `POST /submissoes` inalterados |
+| CRUD de programas | `POST`/`PUT` `/programas`; telas **Programas do sistema** no app; `listProgramasParaPermissoes` na liberação |
+| Liberação — lista unificada | App mescla `GET …/permissoes` + `GET /programas`; programas criados na UI aparecem na liberação sem depender só do catálogo fixo |
+| Liberação por tipo de formulário | Tabelas `tipos_usuario_tipos_formulario` e `usuarios_tipos_formulario`; `usuarios.override_tipos_formulario`; rotas `…/tipos-formulario-acesso`; filtro em listagens operacionais; migration `20260521100000` |
+| Módulo — código automático | `POST /modulos-sistema` sem `codigo` no body; API atribui `max(codigo)+1`; app sem campo Código no cadastro |
+| Cadastro de escolaridades | Tabela `escolaridades` (código, descrição, ativo); programa `escolaridades`; FK `escolaridadeCodigo` na entrevista; migration `20260525100000` (seed **Nunca Frequentou Escola**); remove enum `EscolaridadeFamiliar` |
+| Cadastro de departamentos | Tabela `departamentos`; programa `departamentos`; CRUD `/departamentos`; migration `20260525110000`; desativação **409** com vínculo |
+| Cadastro de voluntários | Tabela `voluntarios`; enum `EstadoCivilVoluntario`; FK `cidadeCodigo`; programa `voluntarios`; CRUD `/voluntarios`; migrations `20260525120000`, `20260525140000` (`nome` + `nomeCracha`) |
+| Voluntário × departamento | `voluntario_departamento_horarios`; dia da semana + horários; mesmo voluntário/departamento pode repetir; migration `20260525130000`; UI com máscara de hora |
+| Lista de voluntários | Pesquisa por nome (nome + crachá), CPF e departamento (`?departamentoCodigo`) |
+| Cadastro de cursos | Tabela `cursos`; programa `cursos`; CRUD `/cursos`; migration `20260525160000` |
+| Estado civil — Separado(a) | Enum `EstadoCivilVoluntario` + valor `SEPARADO`; voluntários e alunos de capacitação; migration `20260525150000` |
+| Alunos de Capacitação Profissional | `alunos_capacitacao_profissional` + `aluno_capacitacao_renda_familiar`; enum `TipoCasaAlunoCapacitacao`; programa `alunos_capacitacao`; CRUD `/alunos-capacitacao`; formulário com 3 abas no app; migration `20260525170000` |
 
 ---

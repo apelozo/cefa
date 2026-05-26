@@ -2,7 +2,12 @@ import type { FastifyPluginAsync } from "fastify";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
+import {
+  getTiposFormularioAcessoUsuario,
+  setTiposFormularioAcessoUsuario,
+} from "../services/tipos-formulario-acesso.js";
 import { permissoesBodySchema } from "../validators/tipos-usuario.js";
+import { tiposFormularioAcessoBodySchema } from "../validators/tipos-formulario-acesso.js";
 import {
   createUsuario,
   deleteUsuario,
@@ -136,6 +141,42 @@ export const usuariosRoutes: FastifyPluginAsync = async (app) => {
         });
       }
       if (err instanceof Error && err.message.includes("permissão total")) {
+        return reply.status(400).send({ error: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.get("/usuarios/:id/tipos-formulario-acesso", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const data = await getTiposFormularioAcessoUsuario(id);
+    if (!data) {
+      return reply.status(404).send({ error: "Usuário não encontrado" });
+    }
+    return reply.send(data);
+  });
+
+  app.put("/usuarios/:id/tipos-formulario-acesso", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const body = tiposFormularioAcessoBodySchema.parse(request.body);
+      const data = await setTiposFormularioAcessoUsuario(
+        id,
+        body,
+        request.usuarioId!,
+      );
+      if (!data) {
+        return reply.status(404).send({ error: "Usuário não encontrado" });
+      }
+      return reply.send(data);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        return reply.status(400).send({
+          error: "Validação falhou",
+          details: err.flatten(),
+        });
+      }
+      if (err instanceof Error && err.message.includes("acesso a todos")) {
         return reply.status(400).send({ error: err.message });
       }
       throw err;

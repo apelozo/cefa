@@ -85,14 +85,27 @@ const authPlugin: FastifyPluginAsync = async (app) => {
     let allowed = podeAcaoHttp(request.permissaoMap, programa, acao);
     if (
       !allowed &&
-      path === "/programas" &&
+      path.startsWith("/programas") &&
       acao === "consultar"
     ) {
       allowed =
         podeAcaoHttp(request.permissaoMap, "liberacao_usuario", "consultar") ||
         podeAcaoHttp(request.permissaoMap, "liberacao_tipo_usuario", "consultar") ||
         podeAcaoHttp(request.permissaoMap, "modulos_sistema", "consultar") ||
-        podeAcaoHttp(request.permissaoMap, "modulos_sistema", "alterar");
+        podeAcaoHttp(request.permissaoMap, "modulos_sistema", "alterar") ||
+        podeAcaoHttp(request.permissaoMap, "modulos_sistema", "incluir");
+    }
+
+    if (
+      !allowed &&
+      path.startsWith("/escolaridades") &&
+      acao === "consultar"
+    ) {
+      allowed = podeAcaoHttp(
+        request.permissaoMap,
+        "entrevista_assistido",
+        "consultar",
+      );
     }
 
     if (!allowed) {

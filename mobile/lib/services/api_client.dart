@@ -5,12 +5,19 @@ import '../models/modulo_sistema.dart';
 import '../models/pergunta.dart';
 import '../models/permissao.dart';
 import '../models/bairro.dart';
+import '../models/departamento.dart';
+import '../models/curso.dart';
+import '../models/aluno_capacitacao.dart';
+import '../models/voluntario.dart';
+import '../models/voluntario_departamento_horario.dart';
+import '../models/escolaridade.dart';
 import '../models/cidade.dart';
 import '../models/pessoa.dart';
 import '../models/programa.dart';
 import '../models/entrevista_assistido.dart';
 import '../models/submissao.dart';
 import '../models/tipo_formulario.dart';
+import '../models/tipos_formulario_acesso.dart';
 import '../models/tipo_usuario.dart';
 import '../models/usuario.dart';
 
@@ -268,6 +275,35 @@ class ApiClient {
     }
   }
 
+  Future<Programa> createPrograma(Programa programa) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/programas',
+        data: programa.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return Programa.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Programa> updatePrograma(Programa programa) async {
+    if (programa.id.isEmpty) {
+      throw ApiException('ID do programa inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/programas/${programa.id}',
+        data: programa.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return Programa.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
   // --- Tipos de usuário ---
 
   Future<List<TipoUsuario>> listTiposUsuario({bool? ativo}) async {
@@ -464,11 +500,75 @@ class ApiClient {
 
   // --- Tipos de formulário ---
 
-  Future<List<TipoFormulario>> listTiposFormulario({bool? ativo}) async {
+  Future<TiposFormularioAcessoResumo> getTiposFormularioAcessoTipoUsuario(
+    String tipoId,
+  ) async {
     try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/tipos-usuario/$tipoId/tipos-formulario-acesso',
+      );
+      return TiposFormularioAcessoResumo.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<TiposFormularioAcessoResumo> setTiposFormularioAcessoTipoUsuario(
+    String tipoId,
+    List<String> tipoFormularioIds,
+  ) async {
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/tipos-usuario/$tipoId/tipos-formulario-acesso',
+        data: {'tipoFormularioIds': tipoFormularioIds},
+        options: _jsonOptions,
+      );
+      return TiposFormularioAcessoResumo.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<TiposFormularioAcessoResumo> getTiposFormularioAcessoUsuario(
+    String usuarioId,
+  ) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/usuarios/$usuarioId/tipos-formulario-acesso',
+      );
+      return TiposFormularioAcessoResumo.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<TiposFormularioAcessoResumo> setTiposFormularioAcessoUsuario(
+    String usuarioId,
+    List<String> tipoFormularioIds,
+  ) async {
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/usuarios/$usuarioId/tipos-formulario-acesso',
+        data: {'tipoFormularioIds': tipoFormularioIds},
+        options: _jsonOptions,
+      );
+      return TiposFormularioAcessoResumo.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<List<TipoFormulario>> listTiposFormulario({
+    bool? ativo,
+    bool todos = false,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (todos) params['todos'] = 'true';
       final response = await _dio.get<List<dynamic>>(
         '/tipos-formulario',
-        queryParameters: ativo != null ? {'ativo': ativo.toString()} : null,
+        queryParameters: params.isEmpty ? null : params,
       );
       return (response.data ?? [])
           .map((e) => TipoFormulario.fromJson(e as Map<String, dynamic>))
@@ -648,7 +748,7 @@ class ApiClient {
 
   Future<Pessoa> updatePessoa(Pessoa pessoa) async {
     if (pessoa.id.isEmpty) {
-      throw ApiException('ID da pessoa inválido');
+      throw ApiException('ID do assistido inválido');
     }
     try {
       final response = await _dio.put<Map<String, dynamic>>(
@@ -803,6 +903,441 @@ class ApiClient {
         options: _deleteOptions,
       );
       return Bairro.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Escolaridades ---
+
+  Future<List<Escolaridade>> listEscolaridades({
+    bool? ativo,
+    int? codigo,
+    String? descricao,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (codigo != null) params['codigo'] = codigo.toString();
+      if (descricao != null && descricao.trim().isNotEmpty) {
+        params['descricao'] = descricao.trim();
+      }
+      final response = await _dio.get<List<dynamic>>(
+        '/escolaridades',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      return (response.data ?? [])
+          .map((e) => Escolaridade.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Escolaridade> createEscolaridade(Escolaridade escolaridade) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/escolaridades',
+        data: escolaridade.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return Escolaridade.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Escolaridade> updateEscolaridade(Escolaridade escolaridade) async {
+    if (escolaridade.id.isEmpty) {
+      throw ApiException('ID da escolaridade inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/escolaridades/${escolaridade.id}',
+        data: escolaridade.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return Escolaridade.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Escolaridade> softDeleteEscolaridade(String id) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/escolaridades/$id',
+        options: _deleteOptions,
+      );
+      return Escolaridade.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Departamentos ---
+
+  Future<List<Departamento>> listDepartamentos({
+    bool? ativo,
+    int? codigo,
+    String? descricao,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (codigo != null) params['codigo'] = codigo.toString();
+      if (descricao != null && descricao.trim().isNotEmpty) {
+        params['descricao'] = descricao.trim();
+      }
+      final response = await _dio.get<List<dynamic>>(
+        '/departamentos',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      return (response.data ?? [])
+          .map((e) => Departamento.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Departamento> createDepartamento(Departamento departamento) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/departamentos',
+        data: departamento.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return Departamento.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Departamento> updateDepartamento(Departamento departamento) async {
+    if (departamento.id.isEmpty) {
+      throw ApiException('ID do departamento inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/departamentos/${departamento.id}',
+        data: departamento.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return Departamento.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Departamento> desativarDepartamento(String id) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/departamentos/$id',
+        options: _deleteOptions,
+      );
+      return Departamento.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Cursos ---
+
+  Future<List<Curso>> listCursos({
+    bool? ativo,
+    int? codigo,
+    String? descricao,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (codigo != null) params['codigo'] = codigo.toString();
+      if (descricao != null && descricao.trim().isNotEmpty) {
+        params['descricao'] = descricao.trim();
+      }
+      final response = await _dio.get<List<dynamic>>(
+        '/cursos',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      return (response.data ?? [])
+          .map((e) => Curso.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Curso> createCurso(Curso curso) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/cursos',
+        data: curso.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return Curso.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Curso> updateCurso(Curso curso) async {
+    if (curso.id.isEmpty) {
+      throw ApiException('ID do curso inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/cursos/${curso.id}',
+        data: curso.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return Curso.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Curso> desativarCurso(String id) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/cursos/$id',
+        options: _deleteOptions,
+      );
+      return Curso.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Alunos de capacitação profissional ---
+
+  Future<List<AlunoCapacitacao>> listAlunosCapacitacao({
+    bool? ativo,
+    String? nome,
+    String? cpf,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (nome != null && nome.trim().isNotEmpty) {
+        params['nome'] = nome.trim();
+      }
+      if (cpf != null && cpf.trim().isNotEmpty) {
+        params['cpf'] = cpf.trim();
+      }
+      final response = await _dio.get<List<dynamic>>(
+        '/alunos-capacitacao',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      return (response.data ?? [])
+          .map((e) => AlunoCapacitacao.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<AlunoCapacitacao> getAlunoCapacitacao(String id) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/alunos-capacitacao/$id',
+      );
+      return AlunoCapacitacao.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<AlunoCapacitacao> createAlunoCapacitacao(
+    AlunoCapacitacao aluno,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/alunos-capacitacao',
+        data: aluno.toSaveJson(),
+        options: _jsonOptions,
+      );
+      return AlunoCapacitacao.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<AlunoCapacitacao> updateAlunoCapacitacao(
+    AlunoCapacitacao aluno,
+  ) async {
+    if (aluno.id.isEmpty) {
+      throw ApiException('ID do aluno inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/alunos-capacitacao/${aluno.id}',
+        data: aluno.toSaveJson(),
+        options: _jsonOptions,
+      );
+      return AlunoCapacitacao.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<AlunoCapacitacao> desativarAlunoCapacitacao(String id) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/alunos-capacitacao/$id',
+        options: _deleteOptions,
+      );
+      return AlunoCapacitacao.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Voluntários ---
+
+  Future<List<Voluntario>> listVoluntarios({
+    bool? ativo,
+    int? codigo,
+    String? nome,
+    String? nomeCracha,
+    String? empresa,
+    String? cpf,
+    int? departamentoCodigo,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (ativo != null) params['ativo'] = ativo.toString();
+      if (codigo != null) params['codigo'] = codigo.toString();
+      final nomeBusca = (nome ?? nomeCracha)?.trim();
+      if (nomeBusca != null && nomeBusca.isNotEmpty) {
+        params['nome'] = nomeBusca;
+      }
+      if (empresa != null && empresa.trim().isNotEmpty) {
+        params['empresa'] = empresa.trim();
+      }
+      if (cpf != null && cpf.trim().isNotEmpty) {
+        params['cpf'] = cpf.trim();
+      }
+      if (departamentoCodigo != null) {
+        params['departamentoCodigo'] = departamentoCodigo.toString();
+      }
+      final response = await _dio.get<List<dynamic>>(
+        '/voluntarios',
+        queryParameters: params.isEmpty ? null : params,
+      );
+      return (response.data ?? [])
+          .map((e) => Voluntario.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Voluntario> createVoluntario(Voluntario voluntario) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/voluntarios',
+        data: voluntario.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return Voluntario.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Voluntario> updateVoluntario(Voluntario voluntario) async {
+    if (voluntario.id.isEmpty) {
+      throw ApiException('ID do voluntário inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/voluntarios/${voluntario.id}',
+        data: voluntario.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return Voluntario.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<Voluntario> desativarVoluntario(String id) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/voluntarios/$id',
+        options: _deleteOptions,
+      );
+      return Voluntario.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  // --- Voluntário × departamento (horários) ---
+
+  Future<List<VoluntarioDepartamentoHorario>> listVoluntarioDepartamentoHorarios(
+    String voluntarioId,
+  ) async {
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/voluntarios/$voluntarioId/departamento-horarios',
+      );
+      return (response.data ?? [])
+          .map(
+            (e) => VoluntarioDepartamentoHorario.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<VoluntarioDepartamentoHorario> createVoluntarioDepartamentoHorario(
+    String voluntarioId,
+    VoluntarioDepartamentoHorario horario,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/voluntarios/$voluntarioId/departamento-horarios',
+        data: horario.toCreateJson(),
+        options: _jsonOptions,
+      );
+      return VoluntarioDepartamentoHorario.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<VoluntarioDepartamentoHorario> updateVoluntarioDepartamentoHorario(
+    VoluntarioDepartamentoHorario horario,
+  ) async {
+    if (horario.id.isEmpty) {
+      throw ApiException('ID do vínculo inválido');
+    }
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/voluntario-departamento-horarios/${horario.id}',
+        data: horario.toUpdateJson(),
+        options: _jsonOptions,
+      );
+      return VoluntarioDepartamentoHorario.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
+    }
+  }
+
+  Future<VoluntarioDepartamentoHorario> deleteVoluntarioDepartamentoHorario(
+    String id,
+  ) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/voluntario-departamento-horarios/$id',
+        options: _deleteOptions,
+      );
+      return VoluntarioDepartamentoHorario.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiException(_extractError(e), statusCode: e.response?.statusCode);
     }

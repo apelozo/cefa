@@ -29,7 +29,7 @@ cd backend
 npx prisma migrate deploy
 ```
 
-Inclui, entre outras, `20260520110000_texto_linhas_e_valor_text` (`perguntas.linhas_campo`, `respostas.valor_texto` → `TEXT`). Ver [modelo-dados.md](./modelo-dados.md).
+Inclui, entre outras: `20260520110000_texto_linhas_e_valor_text` (`perguntas.linhas_campo`, `respostas.valor_texto` → `TEXT`); `20260521100000_tipos_formulario_acesso` (liberação por tipo de formulário); `20260525100000_escolaridades` (tabela `escolaridades`, FK na entrevista); `20260525110000_departamentos`; `20260525120000_voluntarios`; `20260525130000_voluntario_departamento_horarios`; `20260525140000_voluntario_nome`; `20260525150000_voluntario_estado_civil_separado` (enum `SEPARADO`); `20260525160000_cursos`; `20260525170000_alunos_capacitacao_profissional` (tabela principal + `aluno_capacitacao_renda_familiar`). Após `migrate deploy`, usuários não admin precisam marcar tipos em **Liberação de acesso** (aba **Tipos de formulário**) e liberar programas novos (`escolaridades`, `departamentos`, `cursos`, `voluntarios`, `alunos_capacitacao`) conforme necessário. Ver [modelo-dados.md](./modelo-dados.md).
 
 **Opção B — Docker local**
 
@@ -57,6 +57,19 @@ cd mobile
 flutter pub get
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
 ```
+
+### Produção (Render + Neon)
+
+API publicada: **`https://cefa-api.onrender.com`**. Guia completo: **[deploy-render.md](./deploy-render.md)**.
+
+Testar o app (Chrome ou Android):
+
+```bash
+cd mobile
+flutter run --dart-define=API_BASE_URL=https://cefa-api.onrender.com
+```
+
+Chrome explicitamente: acrescente `-d chrome` ao comando acima.
 
 ---
 

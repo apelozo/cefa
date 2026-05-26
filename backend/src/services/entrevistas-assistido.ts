@@ -4,7 +4,7 @@ import { normalizeCpf } from "../lib/cpf.js";
 import { formatDataBr, parseDataBr } from "../lib/campo.js";
 import { formatCpf } from "../lib/cpf.js";
 import { ROTULO_FORMA_ACESSO } from "../lib/entrevista-assistido.js";
-import { rotuloEscolaridadeFamiliar } from "../lib/escolaridade-familiar.js";
+import { assertEscolaridadeCodigo } from "./escolaridades.js";
 import {
   codigoOcupacaoFamiliar,
   rotuloOcupacaoFamiliar,
@@ -40,7 +40,10 @@ const entrevistaInclude = {
   formasAcesso: { orderBy: { formaAcesso: "asc" as const } },
   composicaoFamiliar: { orderBy: { ordem: "asc" as const } },
   condicoesTrabalho: { orderBy: { ordem: "asc" as const } },
-  condicoesEducacionais: { orderBy: { ordem: "asc" as const } },
+  condicoesEducacionais: {
+    orderBy: { ordem: "asc" as const },
+    include: { escolaridade: true },
+  },
   deficienciasFamilia: { orderBy: { ordem: "asc" as const } },
   gestantesFamilia: { orderBy: { ordem: "asc" as const } },
 } as const;
@@ -105,10 +108,16 @@ async function salvarFilhosEntrevista(
     | "gestantesFamilia"
   >,
   usuarioId: string,
+  options?: { somenteEscolaridadeAtiva?: boolean },
 ) {
   const composicao = input.composicaoFamiliar ?? [];
   const condicoes = input.condicoesTrabalho ?? [];
   const educacionais = input.condicoesEducacionais ?? [];
+  for (const item of educacionais) {
+    await assertEscolaridadeCodigo(item.escolaridadeCodigo, {
+      somenteAtiva: options?.somenteEscolaridadeAtiva ?? true,
+    });
+  }
   const deficiencias = input.deficienciasFamilia ?? [];
   const gestantes = input.gestantesFamilia ?? [];
   const audit = auditInclusao(usuarioId);
@@ -149,7 +158,7 @@ async function salvarFilhosEntrevista(
         ordem,
         nome: item.nome,
         idade: item.idade,
-        escolaridade: item.escolaridade,
+        escolaridadeCodigo: item.escolaridadeCodigo,
         sabeLerEscrever: item.sabeLerEscrever ?? false,
         frequentaEscola: item.frequentaEscola ?? false,
         ...audit,
@@ -290,10 +299,10 @@ export async function listEntrevistasAssistido(
 async function validarPessoaEntrevista(pessoaId: string) {
   const pessoa = await prisma.pessoa.findUnique({ where: { id: pessoaId } });
   if (!pessoa) {
-    throw new EntrevistaAssistidoValidationError("Pessoa não encontrada");
+    throw new EntrevistaAssistidoValidationError("Assistido não encontrado");
   }
   if (!pessoa.ativo) {
-    throw new EntrevistaAssistidoValidationError("Pessoa inativa");
+    throw new EntrevistaAssistidoValidationError("Assistido inativo");
   }
   return pessoa;
 }
@@ -375,7 +384,9 @@ export async function updateEntrevistaAssistido(
       })),
     });
 
-    await salvarFilhosEntrevista(tx, id, input, usuarioId);
+    await salvarFilhosEntrevista(tx, id, input, usuarioId, {
+      somenteEscolaridadeAtiva: false,
+    });
   }, TX_ENTREVISTA_OPTS);
 
   return getEntrevistaAssistidoById(id);
@@ -459,8 +470,8 @@ export function mapEntrevistaAssistido(
       ordem: c.ordem,
       nome: c.nome,
       idade: c.idade,
-      escolaridade: c.escolaridade,
-      escolaridadeRotulo: rotuloEscolaridadeFamiliar(c.escolaridade),
+      escolaridadeCodigo: c.escolaridadeCodigo,
+      escolaridadeRotulo: c.escolaridade.descricao,
       sabeLerEscrever: c.sabeLerEscrever,
       frequentaEscola: c.frequentaEscola,
     })),

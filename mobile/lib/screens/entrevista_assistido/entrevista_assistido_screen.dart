@@ -10,6 +10,7 @@ import '../../models/entrevista_gestante_familiar.dart';
 import '../../constants/resposta_sim_nao.dart';
 import '../../models/entrevista_assistido.dart';
 import '../../models/entrevista_programas_sociais.dart';
+import '../../models/escolaridade.dart';
 import '../../models/forma_acesso_instituicao.dart';
 import '../../models/pessoa.dart';
 import '../../providers/auth_provider.dart';
@@ -86,6 +87,7 @@ class _EntrevistaAssistidoScreenState
   late SaudeFamiliaForm _saudeFamilia;
   Pessoa? _pessoa;
   EntrevistaAssistido? _entrevistaCarregada;
+  List<Escolaridade> _escolaridades = [];
   bool _submitting = false;
   bool _loading = true;
   bool _exportandoPdf = false;
@@ -136,10 +138,32 @@ class _EntrevistaAssistidoScreenState
     super.dispose();
   }
 
+  Future<void> _carregarEscolaridades({List<int>? codigosExtras}) async {
+    try {
+      final items =
+          await ref.read(apiClientProvider).listEscolaridades(ativo: true);
+      final merged = [...items];
+      for (final codigo in codigosExtras ?? const <int>[]) {
+        if (merged.any((e) => e.codigo == codigo)) continue;
+        final extra = await ref
+            .read(apiClientProvider)
+            .listEscolaridades(codigo: codigo);
+        merged.addAll(extra);
+      }
+      merged.sort((a, b) => a.descricao.compareTo(b.descricao));
+      if (mounted) setState(() => _escolaridades = merged);
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e.toString());
+    }
+  }
+
   Future<void> _inicializar() async {
     if (widget.entrevistaId != null) {
       await _carregarEntrevista(widget.entrevistaId!);
       return;
+    }
+    if (!_readOnly) {
+      await _carregarEscolaridades();
     }
     await _selecionarPessoa();
   }
@@ -233,6 +257,13 @@ class _EntrevistaAssistidoScreenState
         _pessoa = pessoaPdf;
         _loading = false;
       });
+      if (!_readOnly) {
+        await _carregarEscolaridades(
+          codigosExtras: entrevista.condicoesEducacionais
+              .map((c) => c.escolaridadeCodigo)
+              .toList(),
+        );
+      }
     } catch (e) {
       if (mounted) {
         showErrorSnackBar(context, e.toString());
@@ -245,7 +276,7 @@ class _EntrevistaAssistidoScreenState
     final pessoa = await PessoasSearchScreen.select(
       context,
       args: const PessoasSearchArgs(
-        title: 'Pessoa da entrevista',
+        title: 'Assistido da entrevista',
         subtitle: 'Entrevista com o Assistido',
         onlyAtivas: true,
       ),
@@ -512,7 +543,7 @@ class _EntrevistaAssistidoScreenState
 
   Future<void> _salvar() async {
     if (_pessoa == null) {
-      showErrorSnackBar(context, 'Selecione a pessoa');
+      showErrorSnackBar(context, 'Selecione o assistido');
       return;
     }
 
@@ -920,6 +951,7 @@ class _EntrevistaAssistidoScreenState
                   readOnly: _readOnly,
                   linhas: _educacionalLinhas,
                   nomesDisponiveis: _nomesFamilia,
+                  escolaridades: _escolaridades,
                   onAdicionar: _adicionarEducacional,
                   onRemover: _removerEducacional,
                   onChanged: _refreshForm,

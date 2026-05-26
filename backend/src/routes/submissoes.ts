@@ -1,6 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
 import { ZodError } from "zod";
 import {
+  buildFiltroTiposFormulario,
+  assertUsuarioAcessoTipoFormulario,
+  TipoFormularioAcessoNegadoError,
+} from "../services/tipos-formulario-acesso.js";
+import {
   createSubmissao,
   getSubmissaoById,
   listSubmissoes,
@@ -18,13 +23,24 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
       nome?: string;
       cpf?: string;
     };
-    const items = await listSubmissoes({
-      tipoFormularioId: query.tipoFormularioId,
-      pessoaId: query.pessoaId,
-      nome: query.nome,
-      cpf: query.cpf,
-    });
-    return reply.send(items.map(mapSubmissaoResumo));
+    try {
+      const filtroTipos = await buildFiltroTiposFormulario(
+        request.usuarioId!,
+        query.tipoFormularioId,
+      );
+      const items = await listSubmissoes({
+        pessoaId: query.pessoaId,
+        nome: query.nome,
+        cpf: query.cpf,
+        ...filtroTipos,
+      });
+      return reply.send(items.map(mapSubmissaoResumo));
+    } catch (err) {
+      if (err instanceof TipoFormularioAcessoNegadoError) {
+        return reply.status(403).send({ error: err.message });
+      }
+      throw err;
+    }
   });
 
   app.post("/submissoes", async (request, reply) => {
@@ -33,6 +49,9 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
       const submissao = await createSubmissao(body, request.usuarioId!);
       return reply.status(201).send(mapSubmissao(submissao));
     } catch (err) {
+      if (err instanceof TipoFormularioAcessoNegadoError) {
+        return reply.status(403).send({ error: err.message });
+      }
       if (err instanceof ZodError) {
         return reply.status(400).send({
           error: "Validação falhou",
@@ -54,6 +73,17 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
     const submissao = await getSubmissaoById(id);
     if (!submissao) {
       return reply.status(404).send({ error: "Submissão não encontrada" });
+    }
+    try {
+      await assertUsuarioAcessoTipoFormulario(
+        request.usuarioId!,
+        submissao.tipoFormularioId,
+      );
+    } catch (err) {
+      if (err instanceof TipoFormularioAcessoNegadoError) {
+        return reply.status(403).send({ error: err.message });
+      }
+      throw err;
     }
     return reply.send(mapSubmissao(submissao));
   });

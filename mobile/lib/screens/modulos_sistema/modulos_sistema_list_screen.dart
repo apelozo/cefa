@@ -11,6 +11,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_screen_chrome.dart';
 import '../../widgets/permissao_gate.dart';
 import '../../widgets/record_action_buttons.dart';
+import '../programas/programas_list_screen.dart';
 import 'modulo_sistema_form_screen.dart';
 
 class ModulosSistemaListScreen extends ConsumerStatefulWidget {
@@ -105,7 +106,23 @@ class _ModulosSistemaListScreenState
     return PermissaoGate(
       programaCodigo: Programas.modulosSistema,
       child: AppScaffold(
-        appBar: AppScreenChrome.appBar(context, title: 'Módulos do sistema'),
+        appBar: AppScreenChrome.appBar(
+          context,
+          title: 'Módulos do sistema',
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.apps_outlined),
+              tooltip: 'Programas do sistema',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProgramasListScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
         floatingActionButton: podeIncluir
             ? FloatingActionButton.extended(
                 onPressed: () => _openForm(),

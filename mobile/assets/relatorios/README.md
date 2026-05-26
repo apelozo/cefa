@@ -11,7 +11,7 @@ O gerador está em `mobile/lib/utils/entrevista_pdf.dart` (fontes Unicode: `pdf_
 
 ## Estrutura do YAML
 
-1. **Pessoa** (`pessoa.*`) — cadastro completo do assistido  
+1. **Assistido** (chaves técnicas `pessoa.*`) — cadastro completo do assistido (`pessoas`)  
 2. **Entrevista** — data, formas de acesso, programas sociais/órgãos, composição, trabalho, educação, deficiência, gestantes, questionário de saúde  
 
 ### Programas sociais — chaves (`programas.*`)
@@ -23,7 +23,7 @@ O gerador está em `mobile/lib/utils/entrevista_pdf.dart` (fontes Unicode: `pdf_
 | `programas.cras`, `centroPop`, `conselhoTutelar`, `ubs`, `creas`, `caps`, `craf`, `outrosAtendimentoFamilia` | Marcador |
 | `programas.outrosOrgaosSociais` | Texto (até 30 caracteres) |
 
-### Seção Pessoa — chaves
+### Seção Assistido — chaves `pessoa.*`
 
 | Chave | Origem |
 |-------|--------|

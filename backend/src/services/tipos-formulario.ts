@@ -5,10 +5,33 @@ import type {
   CreateTipoFormularioInput,
   UpdateTipoFormularioInput,
 } from "../validators/tipos-formulario.js";
+import {
+  grantTipoFormularioAoTipoUsuario,
+  resolveTiposFormularioIds,
+} from "./tipos-formulario-acesso.js";
+import { loadUsuarioComTipo } from "./permissoes.js";
 
-export async function listTiposFormulario(ativo?: boolean) {
+export async function listTiposFormulario(
+  usuarioId: string,
+  options?: { ativo?: boolean; todos?: boolean },
+) {
+  const where: { ativo?: boolean; id?: { in: string[] } } = {};
+  if (options?.ativo !== undefined) {
+    where.ativo = options.ativo;
+  }
+
+  if (!options?.todos) {
+    const ids = await resolveTiposFormularioIds(usuarioId);
+    if (ids !== "all") {
+      if (ids.length === 0) {
+        return [];
+      }
+      where.id = { in: ids };
+    }
+  }
+
   return prisma.tipoFormulario.findMany({
-    where: ativo !== undefined ? { ativo } : undefined,
+    where,
     orderBy: [{ nome: "asc" }, { dataHoraInclusao: "asc" }],
   });
 }
@@ -21,12 +44,23 @@ export async function createTipoFormulario(
   data: CreateTipoFormularioInput,
   usuarioId: string,
 ) {
-  return prisma.tipoFormulario.create({
+  const usuario = await loadUsuarioComTipo(usuarioId);
+  const item = await prisma.tipoFormulario.create({
     data: {
       ...data,
       ...auditInclusao(usuarioId),
     },
   });
+
+  if (usuario) {
+    await grantTipoFormularioAoTipoUsuario(
+      usuario.tipoUsuarioId,
+      item.id,
+      usuarioId,
+    );
+  }
+
+  return item;
 }
 
 export async function updateTipoFormulario(

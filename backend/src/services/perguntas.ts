@@ -29,13 +29,22 @@ export async function listPerguntas(filters?: {
   ativo?: boolean;
   tipoFormularioId?: string;
   opcoesAtivas?: boolean;
+  tipoFormularioIds?: string[];
 }) {
+  const tipoWhere: { tipoFormularioId?: string | { in: string[] } } = {};
+  if (filters?.tipoFormularioId) {
+    tipoWhere.tipoFormularioId = filters.tipoFormularioId;
+  } else if (filters?.tipoFormularioIds) {
+    if (filters.tipoFormularioIds.length === 0) {
+      return [];
+    }
+    tipoWhere.tipoFormularioId = { in: filters.tipoFormularioIds };
+  }
+
   return prisma.pergunta.findMany({
     where: {
       ...(filters?.ativo !== undefined && { ativo: filters.ativo }),
-      ...(filters?.tipoFormularioId && {
-        tipoFormularioId: filters.tipoFormularioId,
-      }),
+      ...tipoWhere,
     },
     include: {
       ...includeTipoFormulario,

@@ -146,7 +146,7 @@ abstract final class SubmissaoPdf {
 
       pw.SizedBox(height: 10),
 
-      _linhaInfo('Pessoa', submissao.pessoaNome),
+      _linhaInfo('Assistido', submissao.pessoaNome),
 
       pw.SizedBox(height: 4),
 

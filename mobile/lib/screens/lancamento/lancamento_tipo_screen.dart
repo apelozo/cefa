@@ -54,7 +54,7 @@ class _LancamentoTipoScreenState extends ConsumerState<LancamentoTipoScreen> {
     final pessoa = await PessoasSearchScreen.select(
       context,
       args: PessoasSearchArgs(
-        title: 'Pessoa do lançamento',
+        title: 'Assistido do questionário',
         subtitle: 'Formulário: ${tipo.nome}',
         onlyAtivas: true,
       ),
@@ -76,7 +76,7 @@ class _LancamentoTipoScreenState extends ConsumerState<LancamentoTipoScreen> {
     return PermissaoGate(
       programaCodigo: Programas.lancamento,
       child: AppScaffold(
-      appBar: AppScreenChrome.appBar(context, title: 'Lançamento'),
+      appBar: AppScreenChrome.appBar(context, title: 'Responder Questionários'),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _tipos == null || _tipos!.isEmpty

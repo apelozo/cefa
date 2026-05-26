@@ -222,7 +222,7 @@ class _LancamentoFormularioScreenState
                         0,
                       ),
                       child: Text(
-                        'Pessoa: ${widget.pessoa.nome}',
+                        'Assistido: ${widget.pessoa.nome}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),

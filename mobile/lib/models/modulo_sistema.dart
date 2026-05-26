@@ -62,7 +62,6 @@ class ModuloSistema {
   }
 
   Map<String, dynamic> toCreateJson() => {
-        'codigo': codigo,
         'nome': nome,
         if (descricao != null && descricao!.isNotEmpty) 'descricao': descricao,
         'ordem': ordem,

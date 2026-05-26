@@ -284,7 +284,7 @@ class EntrevistaCondicaoTrabalhoTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'Base: $quantidadePessoasComposicao pessoa(s) na composição familiar',
+              'Base: $quantidadePessoasComposicao integrante(s) na composição familiar',
               style: textTheme.bodySmall?.copyWith(
                 fontFamily: AppTheme.fontFamily,
                 color: AppColors.neutralGray,

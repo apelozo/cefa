@@ -65,9 +65,9 @@ class _PessoasListScreenState extends ConsumerState<PessoasListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Excluir pessoa?'),
+        title: const Text('Excluir assistido?'),
         content: Text(
-          '"${pessoa.nome}" será removida permanentemente do banco.\n\n'
+          '"${pessoa.nome}" será removido permanentemente do banco.\n\n'
           'Não é possível excluir se houver lançamentos vinculados.',
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
@@ -89,7 +89,7 @@ class _PessoasListScreenState extends ConsumerState<PessoasListScreen> {
     try {
       await ref.read(apiClientProvider).deletePessoa(pessoa.id);
       if (mounted) {
-        showSuccessSnackBar(context, 'Pessoa excluída');
+        showSuccessSnackBar(context, 'Assistido excluído');
         _load();
       }
     } catch (e) {
@@ -109,7 +109,7 @@ class _PessoasListScreenState extends ConsumerState<PessoasListScreen> {
       child: AppScaffold(
       appBar: AppScreenChrome.appBar(
         context,
-        title: 'Pessoas',
+        title: 'Assistidos',
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -138,7 +138,7 @@ class _PessoasListScreenState extends ConsumerState<PessoasListScreen> {
                   child: Padding(
                     padding: AppLayout.screenPadding,
                     child: Text(
-                      'Nenhuma pessoa cadastrada.\nCadastre antes de fazer lançamentos.',
+                      'Nenhum assistido cadastrado.\nCadastre antes de fazer lançamentos.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),

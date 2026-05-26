@@ -226,7 +226,7 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
       if (mounted) {
         showSuccessSnackBar(
           context,
-          widget.isEditing ? 'Pessoa atualizada' : 'Pessoa criada',
+          widget.isEditing ? 'Assistido atualizado' : 'Assistido criado',
         );
         Navigator.pop(context, true);
       }
@@ -283,7 +283,7 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
     return AppScaffold(
       appBar: AppScreenChrome.appBar(
         context,
-        title: widget.isEditing ? 'Editar pessoa' : 'Nova pessoa',
+        title: widget.isEditing ? 'Editar assistido' : 'Novo assistido',
       ),
       body: _loadingRefs
           ? const Center(child: CircularProgressIndicator())

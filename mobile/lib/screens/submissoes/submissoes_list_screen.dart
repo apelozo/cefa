@@ -146,7 +146,7 @@ class _SubmissoesListScreenState extends ConsumerState<SubmissoesListScreen> {
                   onFieldSubmitted: (_) => _enterFocus.onSubmitted(0),
                   onEditingComplete: _enterFocus.editingComplete(0),
                   decoration: const InputDecoration(
-                    labelText: 'Nome da pessoa',
+                    labelText: 'Nome do assistido',
                     prefixIcon: Icon(Icons.person_search),
                   ),
                   textCapitalization: TextCapitalization.words,
@@ -159,7 +159,7 @@ class _SubmissoesListScreenState extends ConsumerState<SubmissoesListScreen> {
                   onFieldSubmitted: (_) => _enterFocus.onSubmitted(1),
                   onEditingComplete: _enterFocus.editingComplete(1),
                   decoration: const InputDecoration(
-                    labelText: 'CPF da pessoa',
+                    labelText: 'CPF do assistido',
                     hintText: '000.000.000-00',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),

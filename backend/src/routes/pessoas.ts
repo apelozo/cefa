@@ -41,7 +41,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
     const { id } = request.params as { id: string };
     const item = await getPessoaById(id);
     if (!item) {
-      return reply.status(404).send({ error: "Pessoa não encontrada" });
+      return reply.status(404).send({ error: "Assistido não encontrado" });
     }
     return reply.send(mapPessoa(item));
   });
@@ -77,7 +77,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
       const body = updatePessoaSchema.parse(request.body);
       const item = await updatePessoa(id, body, request.usuarioId!);
       if (!item) {
-        return reply.status(404).send({ error: "Pessoa não encontrada" });
+        return reply.status(404).send({ error: "Assistido não encontrado" });
       }
       return reply.send(mapPessoa(item));
     } catch (err) {
@@ -102,7 +102,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
     try {
       const item = await deletePessoa(id);
       if (!item) {
-        return reply.status(404).send({ error: "Pessoa não encontrada" });
+        return reply.status(404).send({ error: "Assistido não encontrado" });
       }
       return reply.send(mapPessoa(item));
     } catch (err) {

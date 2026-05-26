@@ -17,6 +17,19 @@ class Programa {
   final int? moduloCodigo;
   final String? moduloNome;
 
+  Map<String, dynamic> toCreateJson() => {
+        'codigo': codigo,
+        'nome': nome,
+        'autoListagem': autoListagem,
+        if (moduloSistemaId != null) 'moduloSistemaId': moduloSistemaId,
+      };
+
+  Map<String, dynamic> toUpdateJson() => {
+        'nome': nome,
+        'autoListagem': autoListagem,
+        'moduloSistemaId': moduloSistemaId,
+      };
+
   factory Programa.fromJson(Map<String, dynamic> json) {
     final moduloCodigoRaw = json['moduloCodigo'];
     int? moduloCodigo;

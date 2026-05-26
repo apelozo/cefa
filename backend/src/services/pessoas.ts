@@ -187,7 +187,7 @@ export async function deletePessoa(id: string) {
   const submissoes = await prisma.submissao.count({ where: { pessoaId: id } });
   if (submissoes > 0) {
     throw new DeleteBlockedError(
-      "Não é possível excluir: existem lançamentos vinculados a esta pessoa",
+      "Não é possível excluir: existem lançamentos vinculados a este assistido",
     );
   }
 
@@ -196,7 +196,7 @@ export async function deletePessoa(id: string) {
   });
   if (entrevistas > 0) {
     throw new DeleteBlockedError(
-      "Não é possível excluir: existem entrevistas vinculadas a esta pessoa",
+      "Não é possível excluir: existem entrevistas vinculadas a este assistido",
     );
   }
 

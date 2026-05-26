@@ -153,7 +153,7 @@ class _SubmissaoDetailScreenState extends ConsumerState<SubmissaoDetailScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Pessoa: ${s.pessoaNome}',
+                'Assistido: ${s.pessoaNome}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
