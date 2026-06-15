@@ -1,3 +1,5 @@
+import 'auditoria_campos.dart';
+
 class Cidade {
   const Cidade({
     required this.id,
@@ -5,6 +7,7 @@ class Cidade {
     required this.nomeMunicipio,
     required this.estado,
     required this.ativo,
+    this.auditoria = const AuditoriaCampos(),
     this.usuarioInclusaoId,
     this.dataHoraInclusao,
     this.usuarioAlteracaoId,
@@ -19,6 +22,7 @@ class Cidade {
   final String nomeMunicipio;
   final String estado;
   final bool ativo;
+  final AuditoriaCampos auditoria;
   final String? usuarioInclusaoId;
   final DateTime? dataHoraInclusao;
   final String? usuarioAlteracaoId;
@@ -44,6 +48,7 @@ class Cidade {
       nomeMunicipio: json['nomeMunicipio'] as String,
       estado: json['estado'] as String,
       ativo: json['ativo'] as bool,
+      auditoria: AuditoriaCampos.fromJson(json),
       usuarioInclusaoId: json['usuarioInclusaoId'] as String?,
       dataHoraInclusao: parseOpt(json['dataHoraInclusao'] as String?),
       usuarioAlteracaoId: json['usuarioAlteracaoId'] as String?,

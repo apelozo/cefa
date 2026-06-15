@@ -9,6 +9,9 @@
 | Erro ao **editar** | Dropdown sem tipo inativo vinculado | Formulário carrega todos os tipos; PUT com corpo JSON explícito |
 | Erro `SegmentedButton` no formulário | Nenhuma opção selecionada em Sim/Não | `emptySelectionAllowed: true` |
 | Migration falha | `DATABASE_URL` incorreta | Conferir `.env` e conexão Neon |
+| Enter “demora” ou só avança na 2ª/3ª vez (Chrome/Web) | `FormEnterFocus` só focava no próximo frame | Atualizado: `requestFocus` imediato + post-frame em `form_enter_focus.dart`; **hot restart** (`R`) no app |
+| Enter não passa por estado civil / município (voluntário) | Campos fora da cadeia antiga | Atualizado em `voluntario_form_screen.dart` — estado civil e município com foco na sequência; ver [mobile.md § Enter](./mobile.md#formulários--tecla-enter) |
+| `channel_binding=require` na URL do Neon | Parâmetro copiado do painel Neon | Remover do `backend/.env` local; manter `sslmode=require&pgbouncer=true` (ver [setup.md](./setup.md), [deploy-render.md](./deploy-render.md)) |
 | App não conecta no celular | IP incorreto | `flutter run --dart-define=API_BASE_URL=http://SEU_IP:3000` |
 | Data salva com **1 dia a menos** | Fuso ao gravar `@db.Date` | Corrigido com UTC em `campo.ts`; reeditar registros antigos |
 | **409** ao excluir | Existem perguntas, lançamentos ou respostas vinculados | Esperado; remover vínculos antes ou usar `ativo = false` |
@@ -32,9 +35,44 @@
 | Migrations pendentes (cidades, bairros, assistidos/`pessoas`, módulo) | Deploy incompleto | `cd backend && npx prisma migrate deploy && npx prisma generate` |
 | Migration `20260521100000` pendente | Liberação por tipo de formulário | `cd backend && npx prisma migrate deploy && npx prisma generate` |
 | Migration `20260525100000`–`20260525140000` pendente | Escolaridades, departamentos, voluntários, vínculos, campo `nome` | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar programas `escolaridades`, `departamentos`, `voluntarios` |
-| Migration `20260525150000`–`20260525170000` pendente | Estado civil Separado(a), cursos, alunos de capacitação | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `cursos`, `alunos_capacitacao` |
-| Atalho **Alunos de Capacitação** não aparece | Programa não liberado ou Prisma Client antigo | Liberação de acesso → `alunos_capacitacao`; parar API; `npx prisma generate`; reiniciar app (`R`) |
-| Erro ao salvar aluno (validação) | Campos condicionais vazios | Com Aluguel: informar valor; com checkbox Senac/Senai, necessidade ou médico: preencher campos habilitados |
+| Migration `20260525150000`–`20260609130000` pendente | Cursos, alunos, inscrições (modelo antigo) | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `cursos`, `alunos`, `inscricoes` |
+| Migration `20260609140000` pendente | Gravar inscrição (HTTP 500 / Internal Server Error) | `cd backend && npx prisma migrate deploy && npx prisma generate`; reiniciar API (Render: redeploy ou restart) |
+| Migration `20260611100000` pendente | Turmas / gravar inscrição com `turmaCodigo` | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `turmas`; reiniciar API |
+| Migration `20260611110000` pendente | Matricular alunos / gravar matrícula | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `matricula_alunos`; reiniciar API |
+| Migration `20260611120000` pendente | Atendimento de alunos / gravar atendimento | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `atendimento_alunos`; reiniciar API |
+| Migration `20260611130000` pendente | Cancelar matrícula / gravar cancelamento | `cd backend && npx prisma migrate deploy && npx prisma generate`; liberar `cancelamento_matricula_alunos`; reiniciar API |
+| Atalho **Matricular Alunos no Curso** não aparece | Programa não liberado | Liberação de acesso → `matricula_alunos` (consultar + alterar); reiniciar app (`R`) |
+| Atalho **Cancelar Matrícula de Alunos no Curso** não aparece | Programa não liberado | Liberação de acesso → `cancelamento_matricula_alunos` (consultar + alterar); reiniciar app (`R`) |
+| Atalho **Atendimento de Alunos** não aparece | Programa não liberado | Liberação de acesso → `atendimento_alunos` (incluir/alterar/consultar/excluir conforme uso); reiniciar app (`R`) |
+| Atalho **Relatório de Alunos da Turma** não aparece | Programa não liberado ou módulo errado | Liberação → `relatorio_alunos_turma` (consultar); atalho fica no módulo **Relatórios** (não Formulários); reiniciar API e app (`R`) |
+| Atalho **Submódulos de relatórios** não aparece | Programa `relatorio_submodulos` não liberado | Liberação de acesso (Administração); reiniciar API (`syncProgramas`) e app (`R`) |
+| **400** ao criar programa no módulo Relatórios | Falta `relatorioSubmoduloId` | Cadastrar submódulo em **Submódulos de relatórios**; selecionar no formulário do programa |
+| **409** ao excluir submódulo | Existem programas vinculados | Desvincular ou mover programas antes; ou desativar o submódulo (`ativo = false`) |
+| Migration `20260615100000` pendente | Submódulos / módulo Relatórios | `cd backend && npx prisma migrate deploy && npx prisma generate`; reiniciar API; liberar `relatorio_submodulos` |
+| Chips de submódulo não aparecem na Home | Módulo Relatórios sem programas com submódulo | Vincular programa ao módulo 3 com `relatorioSubmoduloId`; conferir `GET /modulos-sistema/menu` |
+| Filtro **Curso** vazio na tela de relatório | App/API desatualizados ou sem permissão | Reiniciar API; liberar `relatorio_alunos_turma`; usar `GET /inscricoes/relatorio-alunos-turma/cursos` (não exige programa `cursos`); hot restart (`R`) |
+| **409** ao gravar matrícula (vagas preenchidas) | Turma com todas as vagas já matriculadas | Informe mais vagas; o `POST` só matricula candidatos **novos** (já matriculados são ignorados) |
+| **400** ao gravar matrícula (nenhum aluno novo) | Seleção só com candidatos já matriculados | Marque ao menos um candidato com checkbox **Matricular** (não **Matriculado**) |
+| **500** ao carregar candidatos / matriculados | Migration `20260611130000` pendente (`matricula_cancelada` ausente) | Em `backend/`: `npx prisma migrate deploy` (ver [setup.md](./setup.md)) |
+| **400** ao gravar matrícula (matrícula cancelada) | Aluno teve matrícula cancelada nesta turma | Não é possível matricular de novo; use outra inscrição/turma se aplicável |
+| **400** ao listar atendimentos | Turma/aluno sem inscrição ativa ou filtros incompletos | Selecione turma e aluno; use **Carregar atendimentos** após a pesquisa (matrícula cancelada **não** impede consulta) |
+| **400** ao incluir atendimento | Matrícula cancelada ou aluno não matriculado | Só incluir atendimento com matrícula **ativa**; histórico anterior permanece consultável |
+| **409** ao desativar inscrição | Existem atendimentos vinculados | Exclua os atendimentos antes ou mantenha a inscrição ativa |
+| Tela **Matricular** trava no navegador (`RenderConstrainedBox` / `BoxConstraints` infinito) | `AppButton` com `fullWidth: false` dentro de `Row` (versão antiga) | Atualizar app: `AppButton` usa `IntrinsicWidth`; turma e botão Pesquisar em coluna na tela de matrícula |
+| Lista de **inscrições** traz todos os registros ao abrir | App desatualizado | Atualizar app: selecione ao menos um filtro e toque **Buscar** |
+| Atalho **Cadastro de Turmas** não aparece | Programa não liberado | Liberação de acesso → `turmas`; `npx prisma generate`; reiniciar app |
+| **409** ao criar turma aberta | Já existe turma aberta no mesmo curso + período | Edite a turma existente e defina situação **Fechada** antes de abrir outra |
+| Atalho **Cadastro de Alunos** não aparece | Programa não liberado ou Prisma Client antigo | Liberação de acesso → `alunos`; parar API; `npx prisma generate`; reiniciar app (`R`) |
+| Atalho **Inscrição em curso** não aparece | Programa não liberado ou Prisma Client antigo | Liberação de acesso → `inscricoes`; parar API; `npx prisma generate`; reiniciar app (`R`) |
+| Erro ao gravar inscrição (app: Internal Server Error) | Migration `20260609140000` ou `20260611100000` não aplicada, ou Prisma Client desatualizado | `npx prisma migrate deploy && npx prisma generate`; reiniciar API |
+| **409** ao criar inscrição (turma fechada) | Turma com `situacao = FECHADA` ou inativa | Abra a turma (situação **Aberta**) ou selecione outra turma aberta |
+| App envia `cursoCodigo` na inscrição (400) | App desatualizado | Atualizar app: corpo usa `turmaCodigo`; hot restart (`R`) |
+| Campo de inscrição pula o foco (ex.: Data → Alergias; Nome → Profissão) | Versão antiga com `FormEnterFocus` compartilhado entre campos da mesma aba | Atualizar app: cada campo usa `TextFormField` com foco próprio nas abas Informações Gerais e Renda Familiar |
+| **`TypeError: null: type 'Null' is not a subtype of type 'String'`** ao criar inscrição | API antiga: `mapInscricao` `async` sem `await` em `replyMapped` — `POST /inscricoes` devolvia `{}` | Atualizar backend (`mapInscricao` síncrono; `replyMapped` aguarda Promise); reiniciar API (Render: redeploy); hot restart no app (`R`) |
+| Erro ao salvar aluno (validação) | Nome, data de nascimento ou estado civil ausentes | Preencher campos obrigatórios do formulário |
+| Menu mostra **Alunos de Capacitação** ou atalho some após atualização | App antigo ou programa `alunos_capacitacao` obsoleto | Reiniciar app (`R`); liberar programa **`alunos`**; migrations `20260609100000`–`20260609120000` |
+| **Novo aluno** demora ao abrir (app antigo) | Versão que carregava todas as cidades no `initState` | Atualizar app: inclusão abre na hora; listas só ao tocar no seletor ([mobile.md § Cadastro de Alunos](./mobile.md#cadastro-de-alunos)) |
+| Lista de alunos lenta | API antiga com joins na listagem | Atualizar backend: `GET /alunos` usa `mapAlunoLista` sem joins ([api.md § alunos](./api.md#alunos-alunos)) |
 | `horarioBaseSchema.partial is not a function` ao subir API | Validador Zod de horários (`.superRefine` antes de `.partial`) | Corrigido em `validators/voluntario-departamento-horarios.ts` — reinicie a API |
 | Filtro **Departamento** vazio na lista de voluntários | Sem permissão `consultar` em **Cadastrar departamentos** | Liberar programa `departamentos` ou usar usuário admin |
 | Não consigo desativar departamento | Existem vínculos em `voluntario_departamento_horarios` | Remova os vínculos na edição dos voluntários ou altere o departamento nos horários |

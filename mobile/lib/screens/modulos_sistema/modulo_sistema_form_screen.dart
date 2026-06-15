@@ -10,6 +10,7 @@ import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 import '../programas/programa_form_screen.dart';
 
 class ModuloSistemaFormScreen extends ConsumerStatefulWidget {
@@ -270,6 +271,11 @@ class _ModuloSistemaFormScreenState
                     controlAffinity: ListTileControlAffinity.leading,
                   );
                 }),
+              if (widget.isEditing && widget.modulo != null)
+                AuditoriaSection(
+                  auditoria: widget.modulo!.auditoria,
+                  mostrarExclusao: !widget.modulo!.ativo,
+                ),
               const SizedBox(height: 24),
               AppButton(
                 label: widget.isEditing ? 'Salvar' : 'Criar',

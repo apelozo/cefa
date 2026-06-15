@@ -7,6 +7,7 @@ import {
   loadUsuarioComTipo,
   mapPermissaoFlags,
 } from "../services/permissoes.js";
+import { enrichUsuarioMap } from "../lib/auditoria.js";
 import { mapUsuario } from "../services/usuarios.js";
 import { loginSchema } from "../validators/usuarios.js";
 
@@ -30,10 +31,11 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
       const token = await app.jwt.sign({ sub: usuario.id });
       const permissoes = await buildPermissaoMap(usuario.id);
+      const usuariosAuditoria = await enrichUsuarioMap([usuario]);
 
       return reply.send({
         token,
-        usuario: mapUsuario(usuario),
+        usuario: mapUsuario(usuario, usuariosAuditoria),
         permissoes: Object.fromEntries(
           Object.entries(permissoes).map(([codigo, flags]) => [
             codigo,
@@ -64,9 +66,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const permissoes =
       request.permissaoMap ?? (await buildPermissaoMap(usuario.id));
+    const usuariosAuditoria = await enrichUsuarioMap([usuario]);
 
     return reply.send({
-      usuario: mapUsuario(usuario),
+      usuario: mapUsuario(usuario, usuariosAuditoria),
       permissoes: Object.fromEntries(
         Object.entries(permissoes).map(([codigo, flags]) => [
           codigo,

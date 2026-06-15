@@ -3,6 +3,7 @@ import {
   auditAlteracao,
   auditInclusao,
   mapAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { rotuloDiaSemana } from "../lib/dia-semana.js";
 import { formatHora, validarIntervaloHorario } from "../lib/hora.js";
@@ -154,7 +155,7 @@ export class VoluntarioDepartamentoHorarioReferenciaError extends Error {
   }
 }
 
-export function mapVoluntarioDepartamentoHorario(h: HorarioComRelacoes) {
+export function mapVoluntarioDepartamentoHorario(h: HorarioComRelacoes, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: h.id,
     voluntarioId: h.voluntarioId,
@@ -167,6 +168,6 @@ export function mapVoluntarioDepartamentoHorario(h: HorarioComRelacoes) {
     diaSemanaRotulo: rotuloDiaSemana(h.diaSemana),
     horaInicio: formatHora(h.horaInicio),
     horaTermino: formatHora(h.horaTermino),
-    ...mapAuditoria(h),
+    ...mapAuditoria(h, usuarios),
   };
 }

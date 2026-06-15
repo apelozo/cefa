@@ -33,12 +33,14 @@ Toda tabela do banco possui os mesmos quatro campos de rastreio, preenchidos aut
 - **Sync/seed** (módulos, programas, admin inicial): `usuario_*` pode ser `null` (operação de sistema); implementação em `backend/src/lib/auditoria.ts` e `sync-bootstrap.ts`.
 - Registros migrados da versão anterior: `data_hora_inclusao` copiada do antigo `created_at`; `usuario_*` permanece `null` até nova edição.
 - A API expõe também `createdAt` como alias de `dataHoraInclusao` (ISO 8601) para compatibilidade com o app.
+- Nas respostas JSON de leitura (`GET`, corpo de `POST`/`PUT`), a API acrescenta **`usuarioInclusaoNomeUsuario`**, **`usuarioInclusaoNome`**, **`usuarioAlteracaoNomeUsuario`**, **`usuarioAlteracaoNome`** e, quando aplicável, **`usuarioExclusaoNomeUsuario`** / **`usuarioExclusaoNome`** — derivados da tabela `usuarios`, sem colunas extras no banco (`enrichUsuarioMap` em `backend/src/lib/auditoria.ts`).
+- No app Flutter, o bloco **Auditoria** nas telas de cadastro e consulta mostra data/hora em pt-BR e o login (`nomeUsuario`), com o nome completo na mesma linha quando couber — ver [mobile.md § Bloco de auditoria](./mobile.md#bloco-de-auditoria-nas-telas).
 
 Migration: `backend/prisma/migrations/20260518120000_auditoria/`.
 
 ### Diagrama entidade-relacionamento
 
-No diagrama, a entidade **`Pessoa`** é o assistido cadastrado (tabela `pessoas`); ver [Terminologia](#terminologia-assistido--pessoa). **`AlunoCapacitacaoProfissional`** é cadastro próprio (não é `Pessoa`). A tabela **`cursos`** é catálogo independente — o campo “curso Senac/Senai” do aluno é texto livre, sem FK.
+No diagrama, a entidade **`Pessoa`** é o assistido cadastrado (tabela `pessoas`); ver [Terminologia](#terminologia-assistido--pessoa). **`Aluno`** (`alunos`) é cadastro próprio (não é `Pessoa`). A tabela **`cursos`** é catálogo; **`Turma`** (`turmas`) vincula **curso** + **período**; **`InscricaoAlunoCurso`** (`inscricoes_aluno_curso`) vincula **aluno** × **turma** (inscrição).
 
 ```mermaid
 erDiagram
@@ -69,13 +71,17 @@ erDiagram
     Cidade ||--o{ Pessoa : municipio
     Bairro ||--o{ Pessoa : bairro
     Cidade ||--o{ Voluntario : municipio
-    Cidade ||--o{ AlunoCapacitacaoProfissional : naturalidade
-    Cidade ||--o{ AlunoCapacitacaoProfissional : endereco
+    Cidade ||--o{ Aluno : naturalidade
+    Cidade ||--o{ Aluno : endereco
     Escolaridade ||--o{ EntrevistaCondicaoEducacional : referencia
-    Escolaridade ||--o{ AlunoCapacitacaoProfissional : escolaridade
+    Escolaridade ||--o{ Aluno : escolaridade
+    Aluno ||--o{ InscricaoAlunoCurso : inscricoes
+    Curso ||--o{ Turma : turmas
+    Turma ||--o{ InscricaoAlunoCurso : inscricoes
+    InscricaoAlunoCurso ||--o{ InscricaoRendaFamiliar : renda_familiar
+    InscricaoAlunoCurso ||--o{ InscricaoAtendimento : atendimentos
     Departamento ||--o{ VoluntarioDepartamentoHorario : departamento
     Voluntario ||--o{ VoluntarioDepartamentoHorario : horarios
-    AlunoCapacitacaoProfissional ||--o{ AlunoCapacitacaoRendaFamiliar : rendas_familiares
 
     ModuloSistema {
         uuid id PK
@@ -128,29 +134,56 @@ erDiagram
         auditoria inclusao_alteracao
     }
 
-    AlunoCapacitacaoProfissional {
+    Aluno {
         uuid id PK
         string nome
-        dados_pessoais documentos
+        dados_pessoais documentos endereco contato
         int naturalidade_codigo FK
-        int escolaridade_codigo FK
-        endereco contato
         int cidade_codigo FK
-        enum tipo_casa
-        decimal valor_aluguel
-        flags e textos adicionais
+        int escolaridade_codigo FK
         boolean ativo
         auditoria inclusao_alteracao
     }
 
-    AlunoCapacitacaoRendaFamiliar {
+    Turma {
         uuid id PK
-        uuid aluno_capacitacao_id FK
+        int codigo UK
+        string nome
+        int curso_codigo FK
+        enum periodo MANHA TARDE NOITE
+        enum situacao ABERTA FECHADA
+        boolean ativo
+        auditoria inclusao_alteracao
+    }
+
+    InscricaoAlunoCurso {
+        uuid id PK
+        int codigo UK
+        uuid aluno_id FK
+        int turma_codigo FK
+        date dt_curso
+        boolean flags_informacoes_gerais
+        boolean ativo
+        auditoria inclusao_alteracao
+    }
+
+    InscricaoRendaFamiliar {
+        uuid id PK
+        uuid inscricao_id FK
         int ordem
         string nome
         int idade
         decimal renda
-        string parentesco profissao
+        string parentesco
+        string profissao
+        auditoria inclusao_alteracao
+    }
+
+    InscricaoAtendimento {
+        uuid id PK
+        uuid inscricao_id FK
+        date data_atendimento
+        string descricao max 2000
         auditoria inclusao_alteracao
     }
 
@@ -368,11 +401,11 @@ erDiagram
     }
 ```
 
-**Campos calculados (não persistidos):** `idade` do aluno (a partir de `dt_nascimento`); `rendaPerCapita` (soma das `renda` na tabela filha ÷ quantidade de integrantes com `nome` preenchido).
+**Campos calculados (não persistidos):** `idade` do aluno (a partir de `dt_nascimento`).
 
-**Unicidade:** `(tipo_formulario_id, ordem)` é único em `perguntas` — não podem existir duas perguntas do mesmo formulário com o mesmo número de ordem. `cpf` único em `pessoas`, `voluntarios` e `alunos_capacitacao_profissional` quando informado.
+**Unicidade:** `(tipo_formulario_id, ordem)` é único em `perguntas` — não podem existir duas perguntas do mesmo formulário com o mesmo número de ordem. `cpf` único em `pessoas`, `voluntarios` e `alunos` quando informado.
 
-**Desativação vs exclusão:** catálogos `cursos`, `departamentos`, `voluntarios` e `alunos_capacitacao_profissional` usam `ativo = false` no `DELETE`. `escolaridades` e `bairros` usam soft delete com campos de exclusão. Demais exclusões definitivas validam vínculos (HTTP **409**).
+**Desativação vs exclusão:** catálogos `cursos`, `turmas`, `departamentos`, `voluntarios`, `alunos` e `inscricoes_aluno_curso` usam `ativo = false` no `DELETE`. `escolaridades` e `bairros` usam soft delete com campos de exclusão. Demais exclusões definitivas validam vínculos (HTTP **409**).
 
 ### Tipo de Formulário (`tipos_formulario`)
 
@@ -524,9 +557,38 @@ O código **não** é informado no `POST` e **não** pode ser alterado no `PUT`.
 
 Migration: `20260525160000_cursos`.
 
-### Aluno de capacitação profissional (`alunos_capacitacao_profissional`)
+**Vínculo com turmas:** tabela `turmas` (ver abaixo). Desativar curso **409** se existir turma ativa.
 
-Cadastro do aluno de capacitação (sem vínculo com `pessoas`/assistidos). Tabela filha **`aluno_capacitacao_renda_familiar`** para integrantes da renda (várias linhas por aluno). **`idade`** e **`rendaPerCapita`** são calculadas na API e no app (não persistidas).
+### Turma (`turmas`)
+
+Agrupa oferta de um **curso** em um **período** (Manhã/Tarde/Noite). Tela **Cadastro de Turmas**. **`codigo`** é sequencial único, gerado na API (`max(codigo)+1`).
+
+| Campo (API) | Descrição |
+|-------------|-----------|
+| `codigo` | Inteiro sequencial único — **não** informado no `POST` |
+| `nome` | Nome da turma (obrigatório) |
+| `cursoCodigo` | FK → `cursos.codigo` (curso **ativo**) |
+| `periodo` | Enum `PeriodoInscricao`: `MANHA`, `TARDE`, `NOITE` |
+| `situacao` | Enum `SituacaoTurma`: `ABERTA` (Aberta), `FECHADA` (Fechada) — padrão `ABERTA` na criação |
+| `ativo` | `DELETE` define `ativo = false` |
+| Auditoria | Padrão (UTC) |
+
+**Regra de negócio:** não pode existir mais de uma turma **aberta** (`situacao = ABERTA` e `ativo = true`) para o mesmo `cursoCodigo` + `periodo`. Ao violar, a API retorna **409** pedindo para finalizar (fechar) a turma aberta existente.
+
+Índice parcial no PostgreSQL: `turmas_curso_periodo_aberta_unique` em `(curso_codigo, periodo)` onde `situacao = 'ABERTA' AND ativo = true`.
+
+Migration: `20260611100000_turmas`.
+
+### Aluno (`alunos`)
+
+Cadastro de alunos (sem vínculo com `pessoas`/assistidos). Tela **Cadastro de Alunos** com **dados pessoais**, **endereço** e **contato**. **`idade`** é calculada na API e no app (não persistida).
+
+**Listagem vs detalhe (API):**
+
+| Operação | Conteúdo |
+|----------|----------|
+| `GET /alunos` | Resposta enxuta para a lista no app: `id`, `nome`, `cpf`, `cpfFormatado`, `dtNascimento`, `idade`, `ativo` — **sem** joins em `cidades`/`escolaridades` e **sem** auditoria |
+| `GET /alunos/:id` | Detalhe completo: todos os campos, nomes de FK (`naturalidadeNome`, `cidadeNome`, `escolaridadeDescricao`), campos formatados e auditoria |
 
 | Campo (API) | Descrição |
 |-------------|-----------|
@@ -534,30 +596,97 @@ Cadastro do aluno de capacitação (sem vínculo com `pessoas`/assistidos). Tabe
 | `nomeSocial` | Opcional |
 | `estadoCivil` | Enum `EstadoCivilVoluntario` (mesmo de voluntários) |
 | `rg`, `orgaoExpedidor`, `cpf` | Documentos (`cpf` único quando informado) |
+| `dtExpedicaoRg` | Data de expedição do RG (opcional; `dd/mm/aa` ou `dd/mm/aaaa` na API) |
 | `dtNascimento` | Data obrigatória no cadastro (`dd/mm/aa` ou `dd/mm/aaaa` na API) |
 | `nacionalidade` | Texto opcional |
 | `naturalidadeCodigo` | FK → `cidades.codigo` (município de naturalidade) |
 | `nomeMae`, `nomePai` | Filiação |
 | `escolaridadeCodigo` | FK → `escolaridades.codigo` |
 | `nomeUltimaEscola` | Texto opcional |
-| `endereco`, `enderecoNumero`, `bairro`, `cep` | Endereço (`bairro` texto livre) |
+| `endereco`, `enderecoNumero`, `bairro`, `cep` | Endereço (bairro texto livre; CEP 8 dígitos) |
 | `cidadeCodigo` | FK → `cidades.codigo` (município do endereço) |
-| `tipoCasa` | `PROPRIA`, `CEDIDA`, `ALUGUEL` |
-| `valorAluguel` | Obrigatório na API quando `tipoCasa` = `ALUGUEL` |
-| `telefone`, `celular`, `telefoneRecado`, `email`, `redeSocial` | Contato |
-| `jaFezCursoSenacSenai` | Boolean; se `true`, exige `cursoSenacSenaiDescricao` e `cursoSenacSenaiAno` |
-| `encaminhamento`, `telefoneEncaminhamento` | Opcionais |
-| `possuiNecessidadeEspecial` | Boolean; se `true`, exige `qualNecessidade` |
-| `fazAcompanhamentoMedico` | Boolean; se `true`, exige `tomaMedicacao` |
-| `vacinacao`, `alergias` | Texto opcional |
+| `telefone`, `celular`, `telefoneRecado` | Contato (10 ou 11 dígitos na gravação) |
+| `email` | E-mail opcional |
 | `ativo` | `DELETE` define `ativo = false` |
 | Auditoria | `usuarioInclusaoId`, `dataHoraInclusao`, `usuarioAlteracaoId`, `dataHoraAlteracao` (UTC) |
 
-**Renda familiar** (`aluno_capacitacao_renda_familiar`): `nome` (obrigatório por linha enviada), `idade`, `renda` (decimal), `parentesco`, `profissao`, `ordem`. No `PUT`, todas as linhas são **substituídas**. **Renda per capita** = soma das `renda` ÷ quantidade de linhas com `nome` preenchido.
+Migrations: `20260525170000_alunos_capacitacao_profissional` (criação); `20260609100000_aluno_capacitacao_simplificar` (simplificação); `20260609110000_rename_alunos` (tabela `alunos`, programa `alunos`); `20260609120000_aluno_endereco_contato` (endereço, contato e data de expedição do RG).
 
-O campo “curso Senac/Senai” é **texto livre** — não referencia a tabela `cursos`.
+### Inscrição em curso (`inscricoes_aluno_curso`)
 
-Migration: `20260525170000_alunos_capacitacao_profissional`.
+Vincula um **aluno** a uma **turma** (curso + período via turma). Tela **Inscrição em curso**. **`codigo`** é sequencial único, gerado na API (`max(codigo)+1`). **`rendaPerCapita`** é calculada na API e no app (não persistida): soma das rendas ÷ quantidade de linhas em `inscricao_renda_familiar`. Curso e período vêm da turma (rótulos na listagem/detalhe: `cursoCodigo`, `cursoDescricao`, `periodo`, `periodoRotulo`).
+
+| Campo (API) | Descrição |
+|-------------|-----------|
+| `codigo` | Inteiro sequencial único — **não** informado no `POST` |
+| `alunoId` | FK → `alunos.id` (aluno **ativo**) |
+| `turmaCodigo` | FK → `turmas.codigo` (turma **ativa**; novas inscrições exigem turma **aberta**) |
+| `dtCurso` | Data de **inscrição** na UI (coluna `dt_curso`; obrigatória; `dd/mm/aa` ou `dd/mm/aaaa` na API; na **inclusão** no app, pré-preenchida com a data de hoje) |
+| `jaFezCursoSenacSenai` | Checkbox; se `true`, pode informar `cursoSenacSenaiDescricao` |
+| `possuiEncaminhamento` | Checkbox; se `true`, `orgaoEncaminhamento` e `telefoneEncaminhamento` (10–11 dígitos) |
+| `possuiNecessidadeEspecial` | Checkbox; se `true`, `qualNecessidade` |
+| `fazAcompanhamentoMedico` | Checkbox (independente de medicação) |
+| `tomaMedicacao` | Checkbox; se `true`, pode informar `quaisMedicacoes` |
+| `quaisMedicacoes` | Texto opcional (descrição das medicações); limpo na gravação quando `tomaMedicacao` é `false` |
+| `vacinacao`, `alergias` | Texto opcional |
+| `rendaFamiliar` | Array de linhas (ver tabela filha abaixo); substituído integralmente no `PUT` |
+| `matriculado` | `true` após processo **Matricular Alunos no Curso**; `false` após **Cancelar Matrícula**; padrão `false` |
+| `dtInicioCurso` | **Data da matrícula** na UI (pré-preenchida com hoje no app; gravada no `POST /inscricoes/matricula`; `@db.Date`) |
+| `usuarioMatriculaId` | Usuário que gravou a matrícula |
+| `dataHoraMatricula` | Data/hora da matrícula (UTC) |
+| `matriculaCancelada` | `true` após **Cancelar Matrícula de Alunos no Curso**; impede nova matrícula na mesma turma; padrão `false` |
+| `usuarioCancelamentoMatriculaId` | Usuário que gravou o cancelamento da matrícula |
+| `dataHoraCancelamentoMatricula` | Data/hora do cancelamento da matrícula (UTC) |
+| `ativo` | `DELETE` define `ativo = false` |
+| Auditoria | Padrão (UTC) + campos de matrícula e cancelamento acima |
+
+**Regras de matrícula e cancelamento:**
+
+| Situação | Matricular de novo | Aparece na tela de matrícula | Atendimentos existentes | Incluir novo atendimento |
+|----------|-------------------|------------------------------|-------------------------|--------------------------|
+| Matriculado (`matriculado=true`, `matriculaCancelada=false`) | N/A (já matriculado) | Sim (checkbox **Matriculado**, desabilitado) | Consulta, altera e exclui | Sim |
+| Matrícula cancelada (`matriculaCancelada=true`) | **Não** (**400**) | **Não** | Consulta, altera e exclui | **Não** (**400** no `POST`) |
+| Só inscrito (nunca matriculado) | Sim (se houver vaga) | Sim (candidato) | — | **Não** |
+
+Contagem de vagas e `totalMatriculados` consideram apenas inscrições com `matriculado=true` e `matriculaCancelada=false`.
+
+**Tabela filha — renda familiar (`inscricao_renda_familiar`):**
+
+| Campo | Descrição |
+|-------|-----------|
+| `ordem` | Ordem da linha (0, 1, 2…) |
+| `nome` | Obrigatório por linha |
+| `idade` | Inteiro opcional |
+| `renda` | Decimal (moeda BR na API) |
+| `parentesco`, `profissao` | Texto opcional |
+
+Pessoas da renda familiar **não** referenciam `pessoas`/assistidos.
+
+Migrations: `20260609130000_inscricoes_aluno_curso`; `20260609140000_inscricao_toma_medicacao_checkbox` (`toma_medicacao` boolean; texto antigo renomeado para `quais_medicacoes`); `20260611100000_turmas` (tabela `turmas`; inscrição com `turma_codigo` em vez de `curso_codigo` + `periodo`); `20260611110000_inscricao_matricula` (`matriculado`, `dt_inicio_curso`, auditoria de matrícula); `20260611130000_inscricao_cancelamento_matricula` (`matricula_cancelada`, auditoria de cancelamento).
+
+### Atendimento de aluno (`inscricao_atendimentos`)
+
+Registros de **atendimento** vinculados à **inscrição** (`inscricoes_aluno_curso`). Tela **Atendimento de Alunos**. **`DELETE` físico** do atendimento; desativar inscrição **409** se existir atendimento.
+
+**Validação de matrícula:**
+
+| Operação | Exige matrícula ativa (`matriculado=true` e `matriculaCancelada=false`)? |
+|----------|---------------------------------------------------------------------------|
+| Listar / consultar atendimentos (`GET`) | **Não** — basta inscrição **ativa** na turma/aluno |
+| Alterar / excluir atendimento (`PUT` / `DELETE`) | **Não** — basta inscrição **ativa** |
+| Incluir atendimento (`POST`) | **Sim** |
+
+Após cancelamento da matrícula, o histórico de atendimentos permanece consultável e editável; novos atendimentos são bloqueados.
+
+| Campo (API) | Descrição |
+|-------------|-----------|
+| `inscricaoId` | FK → `inscricoes_aluno_curso.id` (inscrição **ativa**) |
+| `dataAtendimento` | Data do atendimento (`dd/mm/aa` ou `dd/mm/aaaa` na API; na inclusão no app, pré-preenchida com hoje) |
+| `descricao` | Texto até **2000** caracteres |
+| `descricaoResumo` | Somente leitura na listagem — primeiros 50 caracteres + `…` quando maior |
+| Auditoria | Padrão (UTC) |
+
+Migration: `20260611120000_inscricao_atendimentos`.
 
 ### Voluntário (`voluntarios`)
 
@@ -780,11 +909,14 @@ Todas as FKs usam `ON DELETE RESTRICT`. Exclusões **não** propagam em cascata 
 | Tipo de formulário | Perguntas ou submissões vinculadas |
 | Pergunta | Respostas vinculadas |
 | Assistido (`pessoas`) | Submissões ou entrevistas |
-| Cidade / escolaridade | FK em pessoa, voluntário ou aluno de capacitação |
+| Cidade / escolaridade | FK em pessoa, voluntário ou aluno (`alunos`: `naturalidadeCodigo` e `cidadeCodigo`) |
 | Departamento | Vínculo em `voluntario_departamento_horarios` |
-| Curso | Nenhum vínculo FK hoje — apenas desativação |
+| Curso | Turmas em `turmas` (`ON DELETE RESTRICT`) — desativação via `ativo = false` |
+| Turma (`turmas`) | Inscrições em `inscricoes_aluno_curso` (`ON DELETE RESTRICT`) — desativação via `ativo = false` |
 | Voluntário | Apenas desativação (`ativo = false`) |
-| Aluno de capacitação | Apenas desativação; linhas de renda removidas no `PUT` (substituição) |
+| Aluno (`alunos`) | Inscrições em `inscricoes_aluno_curso` (`ON DELETE RESTRICT`) — desativação via `ativo = false` |
+| Inscrição (`inscricoes_aluno_curso`) | Apenas desativação (`ativo = false`); linhas de renda substituídas no `PUT`; **409** se existir atendimento |
+| Atendimento (`inscricao_atendimentos`) | Exclusão **física** no `DELETE` |
 | Entrevista | Exclusão física das tabelas filhas na mesma transação |
 
 ### Módulo do sistema (`modulos_sistema`)
@@ -807,6 +939,7 @@ O `codigo` **não** é enviado no `POST` pelo cliente; a API calcula `max(codigo
 |----------|------|
 | `1` | Formulários |
 | `2` | Administração |
+| `3` | Relatórios |
 
 **Sync na subida da API** (`syncModulos` em `backend/src/lib/sync-bootstrap.ts`):
 
@@ -831,8 +964,29 @@ Catálogo de telas/recursos do sistema (“programas a liberar”). Cada linha e
 | `nome` | Nome exibido nas telas de **liberação de acesso** e checkboxes em módulos |
 | `autoListagem` | `true` se o programa corresponde a uma tela de listagem cadastrada automaticamente |
 | `moduloSistemaId` | FK opcional para o módulo (menu da Home) |
+| `relatorioSubmoduloId` | FK opcional para submódulo — **obrigatório** quando `moduloSistemaId` aponta para o módulo **Relatórios** (`codigo` 3) |
 
 **API:** `GET` / `POST` `/programas`, `GET` / `PUT` `/programas/:id` — ver [api.md](./api.md#programas). Criação/edição exige permissão no programa `modulos_sistema` (incluir/alterar). Consulta de `GET /programas` também aceita liberação de acesso ou módulos.
+
+### Submódulo de relatório (`relatorio_submodulos`)
+
+Catálogo de agrupamentos exibidos na Home quando o módulo **Relatórios** está selecionado (ex.: **IEFA**). Consultável via `GET /relatorio-submodulos` — não depende de convenção no deploy.
+
+| Campo | Descrição |
+|-------|-----------|
+| `codigo` | Identificador estável (`iefa`); minúsculas, números e `_`; **imutável** após criação |
+| `nome` | Rótulo na Home e no cadastro de programas |
+| `descricao` | Texto opcional |
+| `ordem` | Ordem dos chips de submódulo na Home (crescente) |
+| `ativo` | Se `false`, não aparece em novos vínculos de programa |
+
+**Exclusão:** `DELETE` físico; **409** se existir programa com `relatorioSubmoduloId` apontando para o registro.
+
+**Seed:** migration `20260615100000` cria submódulo `iefa` / **IEFA**.
+
+**Programa:** `relatorio_submodulos` (Administração) — CRUD no app.
+
+**API:** [api.md § Submódulos de relatórios](./api.md#submódulos-de-relatórios).
 
 **Implementação:** `backend/src/services/programas.ts` (`listProgramas`, `listProgramasParaPermissoes`, `createPrograma`, `updatePrograma`). Liberação de tipo e de usuário usam `listProgramasParaPermissoes()` — mesma listagem que módulos e `GET /programas`.
 
@@ -848,7 +1002,7 @@ Catálogo de telas/recursos do sistema (“programas a liberar”). Cada linha e
 **Pela interface (recomendado):**
 
 1. App: **Módulos do sistema** → ícone **Programas do sistema** (grade) ou **Novo programa** no formulário do módulo.
-2. Preencher **código** (ex.: `meu_programa`), **nome** (exibido na liberação) e **módulo** (opcional).
+2. Preencher **código** (ex.: `meu_programa`), **nome** (exibido na liberação) e **módulo** (opcional). Se módulo = **Relatórios**, escolher **submódulo** (consultar `GET /relatorio-submodulos`).
 3. API grava com `POST /programas`; o programa aparece em **Liberação por tipo** / **Liberação por usuário** e nos checkboxes do módulo.
 4. Para atalho na Home e rotas protegidas: passos do catálogo fixo abaixo (`HomeMenuRegistry`, `PROGRAMA_POR_ROTA`, telas).
 
@@ -907,6 +1061,7 @@ Por programa, quatro flags independentes: `podeIncluir`, `podeAlterar`, `podeCon
 - No app, `liberacao_*_screen.dart` ainda combina essa resposta com `GET /programas` (`mergePermissaoLinhasComProgramas` em `mobile/lib/utils/permissao_linhas_merge.dart`) para garantir que programas recém-criados apareçam antes de reabrir a tela.
 - Ao salvar (`PUT …/permissoes`), só entram no banco programas com **ao menos uma** flag `true`; programas sem nenhuma flag não geram linha em `tipos_usuario_permissoes` / `usuarios_permissoes`.
 - Tipo com `perfil = ADMINISTRADOR`: a API devolve `perfilAdmin: true`; o app exibe mensagem de permissão total e **não** lista os programas individualmente.
+- **App — Liberação por tipo e por usuário:** aba **Programas** oferece filtro **Módulo** (dropdown) para exibir só programas do módulo selecionado; alterações continuam na lista completa em memória e o **Salvar programas** envia **todas** as linhas (mesma regra de persistência da API).
 
 | `codigo` | Nome | `autoListagem` |
 |----------|------|----------------|
@@ -918,7 +1073,13 @@ Por programa, quatro flags independentes: `podeIncluir`, `podeAlterar`, `podeCon
 | `escolaridades` | Cadastrar escolaridades | sim |
 | `departamentos` | Cadastrar departamentos | sim |
 | `cursos` | Cadastrar cursos | sim |
-| `alunos_capacitacao` | Alunos de Capacitação Profissional | sim |
+| `turmas` | Cadastro de Turmas | sim |
+| `alunos` | Cadastro de Alunos | sim |
+| `inscricoes` | Inscrição em curso | sim |
+| `matricula_alunos` | Matricular Alunos no Curso | sim |
+| `cancelamento_matricula_alunos` | Cancelar Matrícula de Alunos no Curso | sim |
+| `atendimento_alunos` | Atendimento de Alunos | sim |
+| `relatorio_alunos_turma` | Relatório de Alunos da Turma | sim |
 | `voluntarios` | Cadastrar voluntários | sim |
 | `submissoes` | Consultar respostas | sim |
 | `lancamento` | Responder Questionários (UI; código `lancamento`) | não |
@@ -928,13 +1089,15 @@ Por programa, quatro flags independentes: `podeIncluir`, `podeAlterar`, `podeCon
 | `liberacao_usuario` | Liberação de acesso (usuário) | não |
 | `liberacao_tipo_usuario` | Liberação de acesso (tipo) | não |
 | `modulos_sistema` | Módulos do sistema | não |
+| `relatorio_submodulos` | Submódulos de relatórios | sim |
 
 **Vínculo programa → módulo (padrão no catálogo, apenas na criação):**
 
 | Módulo (`codigo`) | Programas |
 |-------------------|-----------|
-| `1` (Formulários) | `tipos_formulario`, `perguntas`, `pessoas`, `cidades`, `bairros`, `escolaridades`, `departamentos`, `cursos`, `alunos_capacitacao`, `voluntarios`, `submissoes`, `lancamento`, `entrevista_assistido` |
-| `2` (Administração) | `usuarios`, `tipos_usuario`, `liberacao_usuario`, `liberacao_tipo_usuario`, `modulos_sistema` |
+| `1` (Formulários) | `tipos_formulario`, `perguntas`, `pessoas`, `cidades`, `bairros`, `escolaridades`, `departamentos`, `cursos`, `turmas`, `alunos`, `inscricoes`, `matricula_alunos`, `cancelamento_matricula_alunos`, `atendimento_alunos`, `voluntarios`, `submissoes`, `lancamento`, `entrevista_assistido` |
+| `2` (Administração) | `usuarios`, `tipos_usuario`, `liberacao_usuario`, `liberacao_tipo_usuario`, `modulos_sistema`, `relatorio_submodulos` |
+| `3` (Relatórios) | `relatorio_alunos_turma` (submódulo padrão **IEFA** — `iefa`) |
 
 Ao subir a API: `syncModulos()` → `syncProgramas()` → `ensureAdminUser()` (`backend/src/lib/sync-bootstrap.ts`).
 
@@ -953,12 +1116,12 @@ Ao subir a API: `syncModulos()` → `syncProgramas()` → `ensureAdminUser()` (`
 | **Ícone excluir** | Exige `podeExcluir` |
 | **Enviar questionário** | Exige `podeIncluir` no programa `lancamento` (UI: Responder Questionários) |
 | **Tipo ADMINISTRADOR** | Todas as flags `true` em todos os programas; na API ignora checagem por rota; no app `isAdmin` libera todas as ações de UI |
-| **Menu da Home (`GET /modulos-sistema/menu`)** | Qualquer usuário autenticado; retorna módulos ativos com programas que o usuário pode acessar (admin vê todos os programas de cada módulo) |
+| **Menu da Home (`GET /modulos-sistema/menu`)** | Qualquer usuário autenticado; retorna módulos ativos ordenados por **`ordem`** (asc) e **`nome`** (asc), com programas acessíveis ao usuário (admin vê todos os programas de cada módulo). Cada programa pode incluir `relatorioSubmoduloId`, `relatorioSubmoduloCodigo`, `relatorioSubmoduloNome`, `relatorioSubmoduloOrdem`. No módulo **Relatórios**, o app exibe chips de **submódulo** e filtra os atalhos; demais módulos seguem lista plana. Atalhos ordenados **alfabeticamente** pelo rótulo |
 
 Exemplo: usuário com só **Alterar** em `perguntas` vê o atalho no módulo **Formulários**, abre a lista e edita registros, mas não vê FAB de inclusão nem exclusão.
 
 Implementação: `backend/src/services/permissoes.ts`; `backend/src/plugins/auth.ts` (registrado com **`fastify-plugin`** para aplicar JWT em todas as rotas); no app `authProvider` (`podeAcessar`, `isAdmin`).
 
-**Liberação de tipos de formulário (app):** abas **Programas** e **Tipos de formulário** em `liberacao_tipo_usuario_screen.dart` e `liberacao_usuario_screen.dart`. API: `backend/src/services/tipos-formulario-acesso.ts`.
+**Liberação de tipos de formulário (app):** abas **Programas** e **Tipos de formulário** em `liberacao_tipo_usuario_screen.dart` e `liberacao_usuario_screen.dart`. Em **ambas**, filtro **Módulo** na aba Programas (somente UI). API: `backend/src/services/tipos-formulario-acesso.ts`.
 
 ---

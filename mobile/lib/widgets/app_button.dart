@@ -50,14 +50,19 @@ class AppButton extends StatelessWidget {
             ],
           );
 
-    final width = fullWidth ? double.infinity : null;
+    Widget wrapButton(Widget button) {
+      final sized = SizedBox(
+        width: fullWidth ? double.infinity : null,
+        height: 56,
+        child: button,
+      );
+      if (fullWidth) return sized;
+      return IntrinsicWidth(child: sized);
+    }
 
     switch (type) {
       case AppButtonType.primary:
-        return SizedBox(
-          width: width,
-          height: 56,
-          child: ElevatedButton(
+        return wrapButton(ElevatedButton(
             focusNode: focusNode,
             onPressed: disabled ? null : onPressed,
             style: ElevatedButton.styleFrom(
@@ -68,36 +73,27 @@ class AppButton extends StatelessWidget {
                   AppColors.accentOrange.withValues(alpha: 0.45),
             ),
             child: child,
-          ),
-        );
+          ));
       case AppButtonType.secondary:
-        return SizedBox(
-          width: width,
-          height: 56,
-          child: OutlinedButton(
-            focusNode: focusNode,
-            onPressed: disabled ? null : onPressed,
-            child: child,
-          ),
-        );
+        return wrapButton(OutlinedButton(
+          focusNode: focusNode,
+          onPressed: disabled ? null : onPressed,
+          child: child,
+        ));
       case AppButtonType.danger:
-        return SizedBox(
-          width: width,
-          height: 56,
-          child: ElevatedButton(
-            focusNode: focusNode,
-            onPressed: disabled ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.withValues(
-                alpha: disabled ? 0.45 : 1,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppLayout.buttonRadius),
-              ),
+        return wrapButton(ElevatedButton(
+          focusNode: focusNode,
+          onPressed: disabled ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.withValues(
+              alpha: disabled ? 0.45 : 1,
             ),
-            child: child,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppLayout.buttonRadius),
+            ),
           ),
-        );
+          child: child,
+        ));
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'auditoria_campos.dart';
 import 'entrevista_composicao_familiar.dart';
 import 'entrevista_condicao_educacional.dart';
 import 'entrevista_condicao_trabalho.dart';
@@ -74,9 +75,11 @@ class EntrevistaAssistido {
     required this.programasSociais,
     required this.saudeFamilia,
     this.pessoaCompleta,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
+  final AuditoriaCampos auditoria;
   final String pessoaId;
   final String dataEntrevista;
   final String? outrosTexto;
@@ -158,6 +161,7 @@ class EntrevistaAssistido {
         json['saudeFamilia'] as Map<String, dynamic>?,
       ),
       pessoaCompleta: pessoaCompleta,
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 
@@ -184,6 +188,7 @@ class EntrevistaAssistido {
       programasSociais: programasSociais ?? this.programasSociais,
       saudeFamilia: saudeFamilia ?? this.saudeFamilia,
       pessoaCompleta: pessoaCompleta,
+      auditoria: auditoria,
     );
   }
 }

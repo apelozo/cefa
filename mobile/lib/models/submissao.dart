@@ -1,3 +1,4 @@
+import 'auditoria_campos.dart';
 import 'tipo_campo.dart';
 
 class RespostaItem {
@@ -79,10 +80,12 @@ class Submissao {
     required this.pessoaNome,
     required this.pessoaCpfFormatado,
     required this.respostas,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
   final DateTime createdAt;
+  final AuditoriaCampos auditoria;
   final String tipoFormularioId;
   final String tipoFormularioNome;
   final String pessoaId;
@@ -105,6 +108,7 @@ class Submissao {
       respostas: (json['respostas'] as List<dynamic>)
           .map((e) => RespostaSubmissao.fromJson(e as Map<String, dynamic>))
           .toList(),
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 }

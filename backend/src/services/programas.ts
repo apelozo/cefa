@@ -1,15 +1,29 @@
 import { Prisma } from "@prisma/client";
 
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { prisma } from "../lib/prisma.js";
+import { isModuloRelatoriosId } from "../lib/modulos-relatorio.js";
 import type {
   CreateProgramaInput,
   UpdateProgramaInput,
 } from "../validators/programas.js";
+import {
+  assertRelatorioSubmoduloAtivo,
+  RelatorioSubmoduloInativoError,
+  RelatorioSubmoduloNaoEncontradoError,
+} from "./relatorio-submodulos.js";
 
 const programaInclude = {
   moduloSistema: {
     select: { id: true, codigo: true, nome: true },
+  },
+  relatorioSubmodulo: {
+    select: { id: true, codigo: true, nome: true, ordem: true },
   },
 } satisfies Prisma.ProgramaInclude;
 
@@ -40,8 +54,45 @@ async function validarModuloSistema(moduloSistemaId: string | null | undefined) 
   }
 }
 
+async function validarRelatorioSubmodulo(
+  moduloSistemaId: string | null | undefined,
+  relatorioSubmoduloId: string | null | undefined,
+) {
+  const emRelatorios = await isModuloRelatoriosId(prisma, moduloSistemaId);
+
+  if (emRelatorios) {
+    if (!relatorioSubmoduloId) {
+      throw new ProgramaReferenciaError(
+        "Programas do módulo Relatórios exigem um submódulo",
+      );
+    }
+    try {
+      await assertRelatorioSubmoduloAtivo(relatorioSubmoduloId);
+    } catch (err) {
+      if (
+        err instanceof RelatorioSubmoduloNaoEncontradoError ||
+        err instanceof RelatorioSubmoduloInativoError
+      ) {
+        throw new ProgramaReferenciaError(err.message);
+      }
+      throw err;
+    }
+    return;
+  }
+
+  if (relatorioSubmoduloId) {
+    throw new ProgramaReferenciaError(
+      "Submódulo de relatório só pode ser usado no módulo Relatórios",
+    );
+  }
+}
+
 export async function createPrograma(data: CreateProgramaInput, usuarioId: string) {
   await validarModuloSistema(data.moduloSistemaId);
+  await validarRelatorioSubmodulo(
+    data.moduloSistemaId,
+    data.relatorioSubmoduloId,
+  );
   try {
     return await prisma.programa.create({
       data: {
@@ -49,6 +100,7 @@ export async function createPrograma(data: CreateProgramaInput, usuarioId: strin
         nome: data.nome,
         autoListagem: data.autoListagem ?? false,
         moduloSistemaId: data.moduloSistemaId ?? null,
+        relatorioSubmoduloId: data.relatorioSubmoduloId ?? null,
         ...auditInclusao(usuarioId),
       },
       include: programaInclude,
@@ -76,6 +128,30 @@ export async function updatePrograma(
     await validarModuloSistema(data.moduloSistemaId);
   }
 
+  const moduloFinal =
+    data.moduloSistemaId !== undefined
+      ? data.moduloSistemaId
+      : existing.moduloSistemaId;
+  const submoduloFinal =
+    data.relatorioSubmoduloId !== undefined
+      ? data.relatorioSubmoduloId
+      : existing.relatorioSubmoduloId;
+
+  if (
+    data.moduloSistemaId !== undefined ||
+    data.relatorioSubmoduloId !== undefined
+  ) {
+    await validarRelatorioSubmodulo(moduloFinal, submoduloFinal);
+  }
+
+  const emRelatorios = await isModuloRelatoriosId(prisma, moduloFinal);
+  const relatorioSubmoduloId = emRelatorios
+    ? submoduloFinal
+    : data.moduloSistemaId !== undefined ||
+        data.relatorioSubmoduloId !== undefined
+      ? null
+      : undefined;
+
   return prisma.programa.update({
     where: { id },
     data: {
@@ -83,6 +159,9 @@ export async function updatePrograma(
       ...(data.autoListagem !== undefined && { autoListagem: data.autoListagem }),
       ...(data.moduloSistemaId !== undefined && {
         moduloSistemaId: data.moduloSistemaId,
+      }),
+      ...(relatorioSubmoduloId !== undefined && {
+        relatorioSubmoduloId,
       }),
       ...auditAlteracao(usuarioId),
     },
@@ -114,8 +193,15 @@ export function mapPrograma(p: {
   usuarioAlteracaoId: string | null;
   dataHoraAlteracao: Date | null;
   moduloSistemaId?: string | null;
+  relatorioSubmoduloId?: string | null;
   moduloSistema?: { id: string; codigo: number; nome: string } | null;
-}) {
+  relatorioSubmodulo?: {
+    id: string;
+    codigo: string;
+    nome: string;
+    ordem: number;
+  } | null;
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: p.id,
     codigo: p.codigo,
@@ -124,6 +210,11 @@ export function mapPrograma(p: {
     moduloSistemaId: p.moduloSistemaId ?? p.moduloSistema?.id ?? null,
     moduloCodigo: p.moduloSistema?.codigo ?? null,
     moduloNome: p.moduloSistema?.nome ?? null,
-    ...mapAuditoria(p),
+    relatorioSubmoduloId:
+      p.relatorioSubmoduloId ?? p.relatorioSubmodulo?.id ?? null,
+    relatorioSubmoduloCodigo: p.relatorioSubmodulo?.codigo ?? null,
+    relatorioSubmoduloNome: p.relatorioSubmodulo?.nome ?? null,
+    relatorioSubmoduloOrdem: p.relatorioSubmodulo?.ordem ?? null,
+    ...mapAuditoria(p, usuarios),
   };
 }

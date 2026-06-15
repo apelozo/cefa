@@ -1,5 +1,9 @@
 import { Prisma, TipoCampo } from "@prisma/client";
-import { auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import {
   formatDataBr,
   isRespostaVazia,
@@ -232,7 +236,7 @@ function mapValorResposta(r: {
   valorData: Date | null;
   valorOpcaoId: string | null;
   valorOpcao?: { id: string; rotulo: string; ativo: boolean } | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     valorInteiro: r.valorInteiro,
     valorDecimal: r.valorDecimal?.toString() ?? null,
@@ -261,10 +265,10 @@ export function mapSubmissaoResumo(submissao: {
   tipoFormulario?: { id: string; nome: string };
   pessoa?: { id: string; nome: string; cpf: string };
   _count?: { respostas: number };
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: submissao.id,
-    ...mapAuditoria(submissao),
+    ...mapAuditoria(submissao, usuarios),
     tipoFormularioId: submissao.tipoFormularioId,
     pessoaId: submissao.pessoaId,
     tipoFormulario: submissao.tipoFormulario,
@@ -308,10 +312,10 @@ export function mapSubmissao(submissao: {
       ordem: number;
     };
   }>;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: submissao.id,
-    ...mapAuditoria(submissao),
+    ...mapAuditoria(submissao, usuarios),
     tipoFormularioId: submissao.tipoFormularioId,
     pessoaId: submissao.pessoaId,
     tipoFormulario: submissao.tipoFormulario,

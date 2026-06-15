@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { temAcessoPrograma } from "../services/permissoes.js";
@@ -40,7 +41,7 @@ export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
       ativo,
       todos,
     });
-    return reply.send(items.map(mapTipoFormulario));
+    return replyMappedList(reply, items, mapTipoFormulario);
   });
 
   app.get("/tipos-formulario/:id", async (request, reply) => {
@@ -66,14 +67,14 @@ export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
       }
     }
 
-    return reply.send(mapTipoFormulario(item));
+    return replyMapped(reply, item, mapTipoFormulario);
   });
 
   app.post("/tipos-formulario", async (request, reply) => {
     try {
       const body = createTipoFormularioSchema.parse(request.body);
       const item = await createTipoFormulario(body, request.usuarioId!);
-      return reply.status(201).send(mapTipoFormulario(item));
+      return replyMapped(reply, item, mapTipoFormulario, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -93,7 +94,7 @@ export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Tipo de formulário não encontrado" });
       }
-      return reply.send(mapTipoFormulario(item));
+      return replyMapped(reply, item, mapTipoFormulario);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -112,7 +113,7 @@ export const tiposFormularioRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Tipo de formulário não encontrado" });
       }
-      return reply.send(mapTipoFormulario(item));
+      return replyMapped(reply, item, mapTipoFormulario);
     } catch (err) {
       if (err instanceof DeleteBlockedError) {
         return reply.status(409).send({ error: err.message });

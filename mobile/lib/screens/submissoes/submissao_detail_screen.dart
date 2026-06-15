@@ -11,6 +11,7 @@ import '../../utils/snackbar.dart';
 import '../../utils/submissao_pdf.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 import '../../widgets/permissao_gate.dart';
 
 class SubmissaoDetailScreen extends ConsumerStatefulWidget {
@@ -175,6 +176,7 @@ class _SubmissaoDetailScreenState extends ConsumerState<SubmissaoDetailScreen> {
                       color: AppColors.neutralGray,
                     ),
               ),
+              AuditoriaSection(auditoria: s.auditoria),
             ],
           ),
         ),

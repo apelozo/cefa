@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   createPrograma,
@@ -17,7 +18,7 @@ import {
 export const programasRoutes: FastifyPluginAsync = async (app) => {
   app.get("/programas", async (_request, reply) => {
     const items = await listProgramas();
-    return reply.send(items.map(mapPrograma));
+    return replyMappedList(reply, items, mapPrograma);
   });
 
   app.get("/programas/:id", async (request, reply) => {
@@ -26,14 +27,14 @@ export const programasRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Programa não encontrado" });
     }
-    return reply.send(mapPrograma(item));
+    return replyMapped(reply, item, mapPrograma);
   });
 
   app.post("/programas", async (request, reply) => {
     try {
       const body = createProgramaSchema.parse(request.body);
       const item = await createPrograma(body, request.usuarioId!);
-      return reply.status(201).send(mapPrograma(item));
+      return replyMapped(reply, item, mapPrograma, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -59,7 +60,7 @@ export const programasRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Programa não encontrado" });
       }
-      return reply.send(mapPrograma(item));
+      return replyMapped(reply, item, mapPrograma);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({

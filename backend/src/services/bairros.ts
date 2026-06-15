@@ -5,6 +5,7 @@ import {
   auditSoftDelete,
   mapAuditoria,
   mapSoftDeleteAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { prisma } from "../lib/prisma.js";
 import type { CreateBairroInput, UpdateBairroInput } from "../validators/bairros.js";
@@ -128,13 +129,13 @@ export function mapBairro(b: {
   dataHoraAlteracao: Date | null;
   usuarioExclusaoId: string | null;
   dataHoraExclusao: Date | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: b.id,
     codigo: b.codigo,
     nome: b.nome,
     ativo: b.ativo,
-    ...mapAuditoria(b),
-    ...mapSoftDeleteAuditoria(b),
+    ...mapAuditoria(b, usuarios),
+    ...mapSoftDeleteAuditoria(b, usuarios),
   };
 }

@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
@@ -31,7 +32,7 @@ export const usuariosRoutes: FastifyPluginAsync = async (app) => {
     else if (query.ativo === "false") ativo = false;
 
     const items = await listUsuarios(ativo);
-    return reply.send(items.map(mapUsuario));
+    return replyMappedList(reply, items, mapUsuario);
   });
 
   app.get("/usuarios/:id", async (request, reply) => {
@@ -40,14 +41,14 @@ export const usuariosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Usuário não encontrado" });
     }
-    return reply.send(mapUsuario(item));
+    return replyMapped(reply, item, mapUsuario);
   });
 
   app.post("/usuarios", async (request, reply) => {
     try {
       const body = createUsuarioSchema.parse(request.body);
       const item = await createUsuario(body, request.usuarioId!);
-      return reply.status(201).send(mapUsuario(item));
+      return replyMapped(reply, item, mapUsuario, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -74,7 +75,7 @@ export const usuariosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Usuário não encontrado" });
       }
-      return reply.send(mapUsuario(item));
+      return replyMapped(reply, item, mapUsuario);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({

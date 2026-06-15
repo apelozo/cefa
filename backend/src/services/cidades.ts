@@ -5,6 +5,7 @@ import {
   auditSoftDelete,
   mapAuditoria,
   mapSoftDeleteAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { prisma } from "../lib/prisma.js";
 import type { CreateCidadeInput, UpdateCidadeInput } from "../validators/cidades.js";
@@ -133,26 +134,29 @@ export class CidadeInativaError extends Error {
   }
 }
 
-export function mapCidade(c: {
-  id: string;
-  codigo: number;
-  nomeMunicipio: string;
-  estado: string;
-  ativo: boolean;
-  usuarioInclusaoId: string | null;
-  dataHoraInclusao: Date;
-  usuarioAlteracaoId: string | null;
-  dataHoraAlteracao: Date | null;
-  usuarioExclusaoId: string | null;
-  dataHoraExclusao: Date | null;
-}) {
+export function mapCidade(
+  c: {
+    id: string;
+    codigo: number;
+    nomeMunicipio: string;
+    estado: string;
+    ativo: boolean;
+    usuarioInclusaoId: string | null;
+    dataHoraInclusao: Date;
+    usuarioAlteracaoId: string | null;
+    dataHoraAlteracao: Date | null;
+    usuarioExclusaoId: string | null;
+    dataHoraExclusao: Date | null;
+  },
+  usuarios?: UsuarioAuditoriaMap,
+) {
   return {
     id: c.id,
     codigo: c.codigo,
     nomeMunicipio: c.nomeMunicipio,
     estado: c.estado,
     ativo: c.ativo,
-    ...mapAuditoria(c),
-    ...mapSoftDeleteAuditoria(c),
+    ...mapAuditoria(c, usuarios),
+    ...mapSoftDeleteAuditoria(c, usuarios),
   };
 }

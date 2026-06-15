@@ -1,4 +1,9 @@
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { prisma } from "../lib/prisma.js";
 import type {
@@ -115,12 +120,12 @@ export function mapTipoFormulario(t: {
   dataHoraInclusao: Date;
   usuarioAlteracaoId: string | null;
   dataHoraAlteracao: Date | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: t.id,
     nome: t.nome,
     descricao: t.descricao,
     ativo: t.ativo,
-    ...mapAuditoria(t),
+    ...mapAuditoria(t, usuarios),
   };
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/api_config.dart';
+import '../constants/modulo_relatorios.dart';
 import '../home/home_menu_registry.dart';
 import '../models/modulo_sistema.dart';
 import '../providers/auth_provider.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<ModuloMenuItem>? _modulos;
   int _moduloIndex = 0;
+  int _submoduloIndex = 0;
   bool _loading = true;
 
   @override
@@ -39,6 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (_moduloIndex >= modulos.length) {
             _moduloIndex = 0;
           }
+          _submoduloIndex = 0;
         });
       }
     } catch (e) {
@@ -55,30 +58,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  List<_HomeSubmoduloOpcao> _submodulosDoModulo(ModuloMenuItem modulo) {
+    if (modulo.codigo != moduloRelatoriosCodigo) return const [];
+
+    final map = <String, _HomeSubmoduloOpcao>{};
+    for (final programa in modulo.programas) {
+      final id = programa.relatorioSubmoduloId;
+      if (id == null || id.isEmpty) continue;
+      map.putIfAbsent(
+        id,
+        () => _HomeSubmoduloOpcao(
+          id: id,
+          label: programa.relatorioSubmoduloNome ?? programa.relatorioSubmoduloCodigo ?? id,
+          ordem: programa.relatorioSubmoduloOrdem ?? 0,
+        ),
+      );
+    }
+
+    final list = map.values.toList()
+      ..sort((a, b) {
+        final byOrdem = a.ordem.compareTo(b.ordem);
+        if (byOrdem != 0) return byOrdem;
+        return a.label.toLowerCase().compareTo(b.label.toLowerCase());
+      });
+    return list;
+  }
+
+  List<_HomeProgramaItem> _programasMenu(
+    ModuloMenuItem modulo, {
+    String? submoduloIdFiltro,
+  }) {
+    final programasMenu = <_HomeProgramaItem>[];
+    for (final programa in modulo.programas) {
+      if (submoduloIdFiltro != null &&
+          programa.relatorioSubmoduloId != submoduloIdFiltro) {
+        continue;
+      }
+      final entry = HomeMenuRegistry.entryForCodigo(programa.codigo);
+      if (entry != null) {
+        programasMenu.add(
+          _HomeProgramaItem(
+            icon: entry.icon,
+            label: entry.label,
+            subtitle: entry.subtitle,
+            screen: entry.screen,
+          ),
+        );
+      }
+    }
+    programasMenu.sort(
+      (a, b) => a.label.toLowerCase().compareTo(b.label.toLowerCase()),
+    );
+    return programasMenu;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = ref.watch(authProvider);
     final modulos = _modulos ?? [];
-    final moduloSelecionado =
-        modulos.isNotEmpty ? modulos[_moduloIndex.clamp(0, modulos.length - 1)] : null;
+    final moduloSelecionado = modulos.isNotEmpty
+        ? modulos[_moduloIndex.clamp(0, modulos.length - 1)]
+        : null;
 
-    final programasMenu = <_HomeProgramaItem>[];
-    if (moduloSelecionado != null) {
-      for (final programa in moduloSelecionado.programas) {
-        final entry = HomeMenuRegistry.entryForCodigo(programa.codigo);
-        if (entry != null) {
-          programasMenu.add(
-            _HomeProgramaItem(
-              icon: entry.icon,
-              label: entry.label,
-              subtitle: entry.subtitle,
-              screen: entry.screen,
-            ),
-          );
-        }
-      }
+    final submodulos = moduloSelecionado != null
+        ? _submodulosDoModulo(moduloSelecionado)
+        : <_HomeSubmoduloOpcao>[];
+    if (_submoduloIndex > submodulos.length) {
+      _submoduloIndex = 0;
     }
+
+    final submoduloFiltro = submodulos.isEmpty || _submoduloIndex == 0
+        ? null
+        : submodulos[_submoduloIndex - 1].id;
+
+    final programasMenu = moduloSelecionado != null
+        ? _programasMenu(
+            moduloSelecionado,
+            submoduloIdFiltro: submoduloFiltro,
+          )
+        : <_HomeProgramaItem>[];
 
     return AppScaffold(
       appBar: AppScreenChrome.appBar(
@@ -143,15 +202,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               label: Text(modulo.nome),
                               selected: selected,
                               onSelected: (_) {
-                                setState(() => _moduloIndex = index);
+                                setState(() {
+                                  _moduloIndex = index;
+                                  _submoduloIndex = 0;
+                                });
                               },
                               selectedColor: AppColors.lightBlue,
                               labelStyle: theme.textTheme.labelLarge?.copyWith(
                                 color: selected
                                     ? AppColors.primaryBlue
                                     : AppColors.neutralGray,
-                                fontWeight:
-                                    selected ? FontWeight.bold : FontWeight.normal,
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                               side: BorderSide(
                                 color: selected
@@ -169,6 +232,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           moduloSelecionado.descricao!,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppColors.neutralGray,
+                          ),
+                        ),
+                      ],
+                      if (submodulos.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Text('Submódulo', style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 48,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: submodulos.length + 1,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, index) {
+                              final selected = index == _submoduloIndex;
+                              final label = index == 0
+                                  ? 'Todos'
+                                  : submodulos[index - 1].label;
+                              return ChoiceChip(
+                                label: Text(label),
+                                selected: selected,
+                                onSelected: (_) {
+                                  setState(() => _submoduloIndex = index);
+                                },
+                                selectedColor: AppColors.lightBlue,
+                                labelStyle:
+                                    theme.textTheme.labelLarge?.copyWith(
+                                  color: selected
+                                      ? AppColors.primaryBlue
+                                      : AppColors.neutralGray,
+                                  fontWeight: selected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                                side: BorderSide(
+                                  color: selected
+                                      ? AppColors.primaryBlue
+                                      : AppColors.mediumGray,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -196,6 +301,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
+
+class _HomeSubmoduloOpcao {
+  const _HomeSubmoduloOpcao({
+    required this.id,
+    required this.label,
+    required this.ordem,
+  });
+
+  final String id;
+  final String label;
+  final int ordem;
 }
 
 class _HomeProgramaItem {

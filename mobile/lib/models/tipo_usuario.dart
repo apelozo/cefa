@@ -1,3 +1,5 @@
+import 'auditoria_campos.dart';
+
 enum PerfilTipoUsuario { administrador, sistema, comum }
 
 PerfilTipoUsuario perfilFromApi(String value) {
@@ -40,6 +42,7 @@ class TipoUsuario {
     required this.perfil,
     required this.ativo,
     required this.createdAt,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
@@ -47,6 +50,7 @@ class TipoUsuario {
   final PerfilTipoUsuario perfil;
   final bool ativo;
   final DateTime createdAt;
+  final AuditoriaCampos auditoria;
 
   factory TipoUsuario.fromJson(Map<String, dynamic> json) {
     return TipoUsuario(
@@ -55,6 +59,7 @@ class TipoUsuario {
       perfil: perfilFromApi(json['perfil'] as String),
       ativo: json['ativo'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 

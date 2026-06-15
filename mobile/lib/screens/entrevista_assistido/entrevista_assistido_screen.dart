@@ -26,6 +26,7 @@ import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 import '../../widgets/permissao_gate.dart';
 import '../pessoas/pessoas_search_args.dart';
 import '../pessoas/pessoas_search_screen.dart';
@@ -851,6 +852,12 @@ class _EntrevistaAssistidoScreenState
                   inputFormatters: [DataBrFormatter()],
                   validator: validateDataBr,
                 ),
+                if (widget.isEdicao && _entrevistaCarregada != null) ...[
+                  const SizedBox(height: 16),
+                  AuditoriaSection(
+                    auditoria: _entrevistaCarregada!.auditoria,
+                  ),
+                ],
               ],
             ),
           ),

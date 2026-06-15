@@ -4,7 +4,7 @@ DOCUMENTACAO.md (índice)
 
 Regra de negócio / campos / exclusão / FK                             docs/modelo-dados.md — seção da entidade (ex.: ### Pessoa — Assistido)            
 API, validação, POST/PUT, 409                                         docs/api.md — seção do recurso + ### Regras de negócio (API) no fim
-Tela Flutter, fluxo, filtro, UX                                       docs/mobile.md — tela/fluxo correspondente
+Tela Flutter, fluxo, filtro, UX, auditoria na UI                      docs/mobile.md — tela/fluxo; § Bloco de auditoria nas telas
 Subir ambiente / migration                                            docs/setup.md
 Deploy API (Render + Neon)                                            docs/deploy-render.md
 Bug / erro                                                            docs/troubleshooting.md + o arquivo da camada onde acha que está o problema
@@ -19,13 +19,53 @@ Para programas do sistema e liberação de acesso:
 
 Leia docs/modelo-dados.md (Programa, Permissões), docs/api.md (Programas, Tipos de usuário / Usuários — permissões) e docs/mobile.md (Programas do sistema e liberação). Depois implemente [sua tarefa].
 
-Para alunos de capacitação profissional:
+Para cadastro de alunos:
 
-Leia docs/modelo-dados.md (Aluno de capacitação profissional, Cidade, Escolaridade), docs/api.md (/alunos-capacitacao) e docs/mobile.md (Alunos de Capacitação Profissional). Depois implemente [sua tarefa].
+Leia docs/modelo-dados.md (Aluno/alunos, Cidade, Escolaridade), docs/api.md (/alunos) e docs/mobile.md (Cadastro de Alunos). Depois implemente [sua tarefa].
+
+Para turmas:
+
+Leia docs/modelo-dados.md (Turma/turmas, Curso), docs/api.md (/turmas) e docs/mobile.md (Cadastro de Turmas). Depois implemente [sua tarefa].
+
+Para inscrição em curso (aluno × turma):
+
+Leia docs/modelo-dados.md (Inscrição/inscricoes_aluno_curso, Turma, Aluno), docs/api.md (/inscricoes) e docs/mobile.md (Inscrição em curso). Depois implemente [sua tarefa].
+
+Para matrícula de inscrições:
+
+Leia docs/modelo-dados.md (Inscrição — campos matriculado e matriculaCancelada), docs/api.md (/inscricoes/matricula) e docs/mobile.md (Matricular Alunos no Curso). Depois implemente [sua tarefa].
+
+Para cancelamento de matrícula:
+
+Leia docs/modelo-dados.md (Inscrição — cancelamento), docs/api.md (/inscricoes/cancelamento-matricula) e docs/mobile.md (Cancelar Matrícula de Alunos no Curso). Depois implemente [sua tarefa].
+
+Para atendimento de alunos matriculados (IEFA / capacitação):
+
+Leia docs/modelo-dados.md (Inscrição + inscricao_atendimentos — validação só no POST), docs/api.md (/inscricao-atendimentos) e docs/mobile.md (Atendimento de Alunos). Depois implemente [sua tarefa].
+
+Para relatório PDF de alunos matriculados:
+
+Leia docs/relatorios.md (§7), docs/api.md (/inscricoes/cancelamento-matricula/matriculados) e docs/mobile.md (Matricular / Cancelar matrícula — PDF). Depois implemente [sua tarefa].
+
+Para relatório de alunos da turma (parametrizado):
+
+Leia docs/relatorios.md (§0 e §8), docs/api.md (/inscricoes/relatorio-alunos-turma) e docs/mobile.md (Relatório de Alunos da Turma). Programa no módulo **Relatórios**, submódulo **IEFA**. Depois implemente [sua tarefa].
+
+Para submódulos de relatórios / novo relatório no menu:
+
+Leia docs/modelo-dados.md (Submódulo de relatório, Programa), docs/api.md (/relatorio-submodulos, /programas), docs/relatorios.md (§0) e docs/mobile.md (Submódulos de relatórios, Home). Consulte `GET /relatorio-submodulos` antes de criar programa. Depois implemente [sua tarefa].
+
+Para menu da Home (módulos, submódulos e programas):
+
+Leia docs/mobile.md (Fluxo de login e Home), docs/modelo-dados.md (módulos, programas, submódulos). Depois implemente [sua tarefa].
 
 Para cursos (catálogo):
 
 Leia docs/modelo-dados.md (Curso), docs/api.md (/cursos) e docs/mobile.md (Cadastrar cursos). Depois implemente [sua tarefa].
+
+Para atendimento médico / prontuário (planejamento — não implementar sem checklist):
+
+Leia docs/atendimento-medico.md (decisões STT, JSON, checklist §10). Confirme que o solicitante preencheu o checklist antes de codar. Depois implemente [sua tarefa].
 
 O que não precisa pedir toda vez
 	Ler tudo em docs/ — só o que a tarefa tocar.

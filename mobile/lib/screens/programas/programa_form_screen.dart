@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../constants/modulo_relatorios.dart';
 import '../../models/modulo_sistema.dart';
 import '../../models/programa.dart';
+import '../../models/relatorio_submodulo.dart';
 import '../../providers/api_provider.dart';
 import '../../theme/app_layout.dart';
 import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 
 class ProgramaFormScreen extends ConsumerStatefulWidget {
   const ProgramaFormScreen({super.key, this.programa});
@@ -28,9 +31,15 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
   late final FormEnterFocus _enterFocus;
   bool _autoListagem = false;
   String? _moduloSistemaId;
+  int? _moduloCodigo;
+  String? _relatorioSubmoduloId;
   List<ModuloSistema> _modulos = [];
+  List<RelatorioSubmodulo> _submodulos = [];
   bool _loadingModulos = true;
+  bool _loadingSubmodulos = false;
   bool _saving = false;
+
+  bool get _moduloEhRelatorios => _moduloCodigo == moduloRelatoriosCodigo;
 
   @override
   void initState() {
@@ -40,7 +49,61 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
     _nomeController = TextEditingController(text: widget.programa?.nome ?? '');
     _autoListagem = widget.programa?.autoListagem ?? false;
     _moduloSistemaId = widget.programa?.moduloSistemaId;
+    _moduloCodigo = widget.programa?.moduloCodigo;
+    _relatorioSubmoduloId = widget.programa?.relatorioSubmoduloId;
     _loadModulos();
+  }
+
+  Future<void> _loadSubmodulos() async {
+    if (!_moduloEhRelatorios) {
+      setState(() {
+        _submodulos = [];
+        _relatorioSubmoduloId = null;
+        _loadingSubmodulos = false;
+      });
+      return;
+    }
+
+    setState(() => _loadingSubmodulos = true);
+    try {
+      final submodulos =
+          await ref.read(apiClientProvider).listRelatorioSubmodulos(ativo: true);
+      if (mounted) {
+        setState(() {
+          _submodulos = submodulos;
+          _loadingSubmodulos = false;
+          if (_relatorioSubmoduloId != null &&
+              !submodulos.any((s) => s.id == _relatorioSubmoduloId)) {
+            _relatorioSubmoduloId = null;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingSubmodulos = false);
+        showErrorSnackBar(context, e.toString());
+      }
+    }
+  }
+
+  void _onModuloChanged(String? moduloId) {
+    ModuloSistema? modulo;
+    if (moduloId != null) {
+      for (final m in _modulos) {
+        if (m.id == moduloId) {
+          modulo = m;
+          break;
+        }
+      }
+    }
+    setState(() {
+      _moduloSistemaId = moduloId;
+      _moduloCodigo = modulo?.codigo;
+      if (!_moduloEhRelatorios) {
+        _relatorioSubmoduloId = null;
+      }
+    });
+    _loadSubmodulos();
   }
 
   Future<void> _loadModulos() async {
@@ -50,7 +113,18 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
         setState(() {
           _modulos = modulos.where((m) => m.ativo).toList();
           _loadingModulos = false;
+          if (_moduloSistemaId != null) {
+            ModuloSistema? modulo;
+            for (final m in _modulos) {
+              if (m.id == _moduloSistemaId) {
+                modulo = m;
+                break;
+              }
+            }
+            _moduloCodigo = modulo?.codigo;
+          }
         });
+        await _loadSubmodulos();
       }
     } catch (e) {
       if (mounted) {
@@ -71,6 +145,15 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_moduloEhRelatorios &&
+        (_relatorioSubmoduloId == null || _relatorioSubmoduloId!.isEmpty)) {
+      showErrorSnackBar(
+        context,
+        'Selecione o submódulo de relatório para programas do módulo Relatórios.',
+      );
+      return;
+    }
+
     setState(() => _saving = true);
     try {
       final api = ref.read(apiClientProvider);
@@ -85,6 +168,8 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
             nome: nome,
             autoListagem: _autoListagem,
             moduloSistemaId: _moduloSistemaId,
+            relatorioSubmoduloId:
+                _moduloEhRelatorios ? _relatorioSubmoduloId : null,
           ),
         );
       } else {
@@ -95,6 +180,8 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
             nome: nome,
             autoListagem: _autoListagem,
             moduloSistemaId: _moduloSistemaId,
+            relatorioSubmoduloId:
+                _moduloEhRelatorios ? _relatorioSubmoduloId : null,
           ),
         );
       }
@@ -194,6 +281,7 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Módulo do menu (opcional)',
                   ),
+                  hint: const Text('Selecione'),
                   items: [
                     const DropdownMenuItem<String?>(
                       value: null,
@@ -206,8 +294,43 @@ class _ProgramaFormScreenState extends ConsumerState<ProgramaFormScreen> {
                       ),
                     ),
                   ],
-                  onChanged: (v) => setState(() => _moduloSistemaId = v),
+                  onChanged: _onModuloChanged,
                 ),
+              if (_moduloEhRelatorios) ...[
+                const SizedBox(height: 12),
+                if (_loadingSubmodulos)
+                  const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    value: _relatorioSubmoduloId,
+                    decoration: const InputDecoration(
+                      labelText: 'Submódulo de relatório',
+                    ),
+                    hint: const Text('Selecione'),
+                    items: _submodulos
+                        .map(
+                          (s) => DropdownMenuItem<String>(
+                            value: s.id,
+                            child: Text('${s.codigo} — ${s.nome}'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) =>
+                        setState(() => _relatorioSubmoduloId = v),
+                    validator: (v) {
+                      if (_moduloEhRelatorios &&
+                          (v == null || v.isEmpty)) {
+                        return 'Submódulo é obrigatório no módulo Relatórios';
+                      }
+                      return null;
+                    },
+                  ),
+              ],
+              if (widget.isEditing && widget.programa != null)
+                AuditoriaSection(auditoria: widget.programa!.auditoria),
               const SizedBox(height: 24),
               AppButton(
                 label: widget.isEditing ? 'Salvar' : 'Criar',

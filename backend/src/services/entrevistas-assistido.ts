@@ -1,5 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { normalizeCpf } from "../lib/cpf.js";
 import { formatDataBr, parseDataBr } from "../lib/campo.js";
 import { formatCpf } from "../lib/cpf.js";
@@ -409,8 +414,7 @@ export async function deleteEntrevistaAssistido(id: string) {
 }
 
 export function mapEntrevistaAssistidoResumo(
-  e: Awaited<ReturnType<typeof listEntrevistasAssistido>>[number],
-) {
+  e: Awaited<ReturnType<typeof listEntrevistasAssistido>>[number], usuarios?: UsuarioAuditoriaMap) {
   return {
     id: e.id,
     pessoaId: e.pessoaId,
@@ -427,19 +431,18 @@ export function mapEntrevistaAssistidoResumo(
     totalCondicoesEducacionais: e._count.condicoesEducacionais,
     totalDeficienciasFamilia: e._count.deficienciasFamilia,
     totalGestantesFamilia: e._count.gestantesFamilia,
-    ...mapAuditoria(e),
+    ...mapAuditoria(e, usuarios),
   };
 }
 
 export function mapEntrevistaAssistido(
-  e: NonNullable<Awaited<ReturnType<typeof getEntrevistaAssistidoById>>>,
-) {
+  e: NonNullable<Awaited<ReturnType<typeof getEntrevistaAssistidoById>>>, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: e.id,
     pessoaId: e.pessoaId,
     dataEntrevista: formatDataBr(e.dataEntrevista),
     outrosTexto: e.outrosTexto,
-    pessoa: mapPessoa(e.pessoa),
+    pessoa: mapPessoa(e.pessoa, usuarios),
     formasAcesso: e.formasAcesso.map((f) => ({
       id: f.id,
       formaAcesso: f.formaAcesso,
@@ -528,6 +531,6 @@ export function mapEntrevistaAssistido(
         ? ROTULO_RESPOSTA_SIM_NAO[e.temGestante]
         : null,
     },
-    ...mapAuditoria(e),
+    ...mapAuditoria(e, usuarios),
   };
 }

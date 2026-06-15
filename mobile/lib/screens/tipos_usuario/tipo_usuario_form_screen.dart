@@ -8,6 +8,7 @@ import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 
 class TipoUsuarioFormScreen extends ConsumerStatefulWidget {
   const TipoUsuarioFormScreen({super.key, this.tipo});
@@ -119,6 +120,11 @@ class _TipoUsuarioFormScreenState extends ConsumerState<TipoUsuarioFormScreen> {
                 value: _ativo,
                 onChanged: (v) => setState(() => _ativo = v),
               ),
+              if (widget.tipo != null)
+                AuditoriaSection(
+                  auditoria: widget.tipo!.auditoria,
+                  mostrarExclusao: !widget.tipo!.ativo,
+                ),
               const SizedBox(height: 24),
               AppButton(
                 label: _saving ? 'Salvando...' : 'Salvar',

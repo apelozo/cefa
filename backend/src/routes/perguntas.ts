@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import {
@@ -48,7 +49,7 @@ export const perguntasRoutes: FastifyPluginAsync = async (app) => {
         opcoesAtivas,
         ...filtroTipos,
       });
-      return reply.send(items.map(mapPergunta));
+      return replyMappedList(reply, items, mapPergunta);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });
@@ -74,7 +75,7 @@ export const perguntasRoutes: FastifyPluginAsync = async (app) => {
       }
       throw err;
     }
-    return reply.send(mapPergunta(pergunta));
+    return replyMapped(reply, pergunta, mapPergunta);
   });
 
   app.post("/perguntas", async (request, reply) => {
@@ -85,7 +86,7 @@ export const perguntasRoutes: FastifyPluginAsync = async (app) => {
         body.tipoFormularioId,
       );
       const pergunta = await createPergunta(body, request.usuarioId!);
-      return reply.status(201).send(mapPergunta(pergunta));
+      return replyMapped(reply, pergunta, mapPergunta, 201);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });
@@ -126,7 +127,7 @@ export const perguntasRoutes: FastifyPluginAsync = async (app) => {
       if (!pergunta) {
         return reply.status(404).send({ error: "Pergunta não encontrada" });
       }
-      return reply.send(mapPergunta(pergunta));
+      return replyMapped(reply, pergunta, mapPergunta);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });
@@ -170,7 +171,7 @@ export const perguntasRoutes: FastifyPluginAsync = async (app) => {
       if (!pergunta) {
         return reply.status(404).send({ error: "Pergunta não encontrada" });
       }
-      return reply.send(mapPergunta(pergunta));
+      return replyMapped(reply, pergunta, mapPergunta);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });

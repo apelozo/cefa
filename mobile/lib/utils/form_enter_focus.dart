@@ -45,7 +45,9 @@ class FormEnterFocus {
       }
     }
 
-    // Após Enter, o campo atual pode ainda estar “segurando” o foco.
+    // Tenta focar imediatamente (responde melhor no Web/Windows) e mantém o
+    // post-frame como fallback, pois o campo atual pode ainda “segurar” o foco.
+    request();
     WidgetsBinding.instance.addPostFrameCallback((_) => request());
   }
 

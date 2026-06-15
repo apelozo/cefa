@@ -8,6 +8,7 @@ import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 
 class TipoFormularioFormScreen extends ConsumerStatefulWidget {
   const TipoFormularioFormScreen({super.key, this.tipo});
@@ -141,6 +142,11 @@ class _TipoFormularioFormScreenState
               value: _ativo,
               onChanged: (v) => setState(() => _ativo = v),
             ),
+            if (widget.isEditing && widget.tipo != null)
+              AuditoriaSection(
+                auditoria: widget.tipo!.auditoria,
+                mostrarExclusao: !widget.tipo!.ativo,
+              ),
             const SizedBox(height: 32),
             AppButton(
               label: widget.isEditing ? 'Salvar' : 'Criar',

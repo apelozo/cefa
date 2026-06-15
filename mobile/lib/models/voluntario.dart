@@ -1,3 +1,5 @@
+import 'auditoria_campos.dart';
+
 class Voluntario {
   const Voluntario({
     required this.id,
@@ -5,6 +7,7 @@ class Voluntario {
     required this.nome,
     required this.nomeCracha,
     required this.ativo,
+    this.auditoria = const AuditoriaCampos(),
     this.empresa,
     this.funcao,
     this.estadoCivil,
@@ -41,6 +44,7 @@ class Voluntario {
   final String nome;
   final String nomeCracha;
   final bool ativo;
+  final AuditoriaCampos auditoria;
   final String? empresa;
   final String? funcao;
   final String? estadoCivil;
@@ -92,6 +96,7 @@ class Voluntario {
       nome: json['nome'] as String,
       nomeCracha: json['nomeCracha'] as String,
       ativo: json['ativo'] as bool,
+      auditoria: AuditoriaCampos.fromJson(json),
       empresa: json['empresa'] as String?,
       funcao: json['funcao'] as String?,
       estadoCivil: json['estadoCivil'] as String?,

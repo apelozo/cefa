@@ -4,11 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/curso.dart';
 import '../../providers/api_provider.dart';
 import '../../theme/app_layout.dart';
-import '../../theme/app_theme.dart';
-import '../../utils/datetime_display.dart';
 import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/auditoria_section.dart';
 import '../../widgets/app_screen_chrome.dart';
 
 class CursoFormScreen extends ConsumerStatefulWidget {
@@ -95,20 +94,6 @@ class _CursoFormScreenState extends ConsumerState<CursoFormScreen> {
     }
   }
 
-  Widget _auditLine(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontFamily: AppTheme.fontFamily,
-          fontSize: 13,
-          color: Colors.grey.shade700,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = widget.curso;
@@ -160,24 +145,8 @@ class _CursoFormScreenState extends ConsumerState<CursoFormScreen> {
               },
             ),
             const SizedBox(height: 24),
-            if (widget.isEditing && c != null) ...[
-              Text(
-                'Auditoria',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              _auditLine(
-                'Inclusão',
-                '${formatDateTimeBr(c.dataHoraInclusao)}'
-                '${c.usuarioInclusaoId != null ? ' · usuário ${c.usuarioInclusaoId}' : ''}',
-              ),
-              _auditLine(
-                'Última alteração',
-                '${formatDateTimeBr(c.dataHoraAlteracao)}'
-                '${c.usuarioAlteracaoId != null ? ' · usuário ${c.usuarioAlteracaoId}' : ''}',
-              ),
-              const SizedBox(height: 16),
-            ],
+            if (widget.isEditing && c != null)
+              AuditoriaSection(auditoria: c.auditoria),
             AppButton(
               focusNode: _enterFocus.submitFocusNode,
               label: widget.isEditing ? 'Salvar' : 'Criar',

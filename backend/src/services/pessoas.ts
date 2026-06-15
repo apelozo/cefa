@@ -1,5 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { formatDataBr } from "../lib/campo.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { formatCpf, normalizeCpf } from "../lib/cpf.js";
@@ -230,7 +235,7 @@ function formatTelefoneExibicao(tel: string | null | undefined): string | null {
   return tel;
 }
 
-export function mapPessoa(p: PessoaComRelacoes) {
+export function mapPessoa(p: PessoaComRelacoes, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: p.id,
     nome: p.nome,
@@ -258,6 +263,6 @@ export function mapPessoa(p: PessoaComRelacoes) {
     telefone2Formatado: formatTelefoneExibicao(p.telefone2),
     urbanoRural: p.urbanoRural,
     ativo: p.ativo,
-    ...mapAuditoria(p),
+    ...mapAuditoria(p, usuarios),
   };
 }

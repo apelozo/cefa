@@ -21,10 +21,14 @@ class AppFormTextField extends StatelessWidget {
     this.readOnly = false,
     this.onChanged,
     this.suffixIcon,
+    this.onEnterAdvance,
   });
 
   final FormEnterFocus enterFocus;
   final int enterIndex;
+  /// Quando informado, substitui [FormEnterFocus.onSubmitted] (ex.: pular campo
+  /// condicional ou mudar de aba).
+  final VoidCallback? onEnterAdvance;
   final TextEditingController controller;
   final InputDecoration? decoration;
   final FormFieldValidator<String>? validator;
@@ -40,6 +44,31 @@ class AppFormTextField extends StatelessWidget {
 
   bool get _chainEnter => (maxLines ?? 1) == 1;
 
+  void _advanceOnEnter() {
+    if (onEnterAdvance != null) {
+      onEnterAdvance!();
+    } else {
+      enterFocus.onSubmitted(enterIndex);
+    }
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (!_chainEnter) return KeyEventResult.ignored;
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (event.logicalKey != LogicalKeyboardKey.enter &&
+        event.logicalKey != LogicalKeyboardKey.numpadEnter) {
+      return KeyEventResult.ignored;
+    }
+    if (HardwareKeyboard.instance.isShiftPressed) {
+      return KeyEventResult.ignored;
+    }
+    if (node.hasFocus) {
+      _advanceOnEnter();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   Widget build(BuildContext context) {
     final focusNode = enterFocus.fields[enterIndex];
@@ -47,32 +76,31 @@ class AppFormTextField extends StatelessWidget {
       suffixIcon: suffixIcon ?? this.decoration?.suffixIcon,
     );
 
+    final field = TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      readOnly: readOnly,
+      decoration: decoration,
+      validator: validator,
+      keyboardType: keyboardType,
+      textCapitalization: textCapitalization,
+      obscureText: obscureText,
+      inputFormatters: inputFormatters,
+      maxLines: maxLines,
+      textInputAction: _chainEnter
+          ? enterFocus.inputAction(enterIndex)
+          : TextInputAction.newline,
+      onFieldSubmitted: _chainEnter ? (_) => _advanceOnEnter() : null,
+      onEditingComplete: _chainEnter ? _advanceOnEnter : null,
+      onChanged: onChanged,
+    );
+
+    if (!_chainEnter) return field;
+
     return Focus(
-      onKeyEvent: _chainEnter
-          ? (_, event) =>
-              enterFocus.handleEnterKey(enterIndex, focusNode, event)
-          : null,
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        enabled: enabled,
-        readOnly: readOnly,
-        decoration: decoration,
-        validator: validator,
-        keyboardType: keyboardType,
-        textCapitalization: textCapitalization,
-        obscureText: obscureText,
-        inputFormatters: inputFormatters,
-        maxLines: maxLines,
-        textInputAction: _chainEnter
-            ? enterFocus.inputAction(enterIndex)
-            : TextInputAction.newline,
-        onFieldSubmitted:
-            _chainEnter ? (_) => enterFocus.onSubmitted(enterIndex) : null,
-        onEditingComplete:
-            _chainEnter ? enterFocus.editingComplete(enterIndex) : null,
-        onChanged: onChanged,
-      ),
+      onKeyEvent: (_, event) => _onKey(focusNode, event),
+      child: field,
     );
   }
 }

@@ -86,8 +86,3 @@ String? validateLista(String? opcaoId) {
   }
   return null;
 }
-
-String? validateDataBrOpcional(String? value) {
-  if (value == null || value.trim().isEmpty) return null;
-  return validateDataBr(value);
-}

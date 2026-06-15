@@ -18,4 +18,10 @@ export const MODULOS_CATALOGO: ModuloDef[] = [
     descricao: "Usuários, permissões e configuração do sistema",
     ordem: 2,
   },
+  {
+    codigo: 3,
+    nome: "Relatórios",
+    descricao: "Relatórios agrupados por submódulo",
+    ordem: 3,
+  },
 ];

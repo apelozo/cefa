@@ -1,3 +1,5 @@
+import 'auditoria_campos.dart';
+
 class TipoFormulario {
   const TipoFormulario({
     required this.id,
@@ -5,6 +7,7 @@ class TipoFormulario {
     this.descricao,
     required this.ativo,
     required this.createdAt,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
@@ -12,6 +15,7 @@ class TipoFormulario {
   final String? descricao;
   final bool ativo;
   final DateTime createdAt;
+  final AuditoriaCampos auditoria;
 
   factory TipoFormulario.fromJson(Map<String, dynamic> json) {
     return TipoFormulario(
@@ -20,6 +24,7 @@ class TipoFormulario {
       descricao: json['descricao'] as String?,
       ativo: json['ativo'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 
@@ -47,6 +52,7 @@ class TipoFormulario {
       descricao: clearDescricao ? null : (descricao ?? this.descricao),
       ativo: ativo ?? this.ativo,
       createdAt: createdAt,
+      auditoria: auditoria,
     );
   }
 }

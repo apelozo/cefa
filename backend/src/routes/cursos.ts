@@ -1,4 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
+import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { ZodError } from "zod";
 import {
   CursoConflictError,
@@ -36,7 +38,7 @@ export const cursosRoutes: FastifyPluginAsync = async (app) => {
       codigo,
       descricao: query.descricao,
     });
-    return reply.send(items.map(mapCurso));
+    return replyMappedList(reply, items, mapCurso);
   });
 
   app.get("/cursos/:id", async (request, reply) => {
@@ -45,14 +47,14 @@ export const cursosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Curso não encontrado" });
     }
-    return reply.send(mapCurso(item));
+    return replyMapped(reply, item, mapCurso);
   });
 
   app.post("/cursos", async (request, reply) => {
     try {
       const body = createCursoSchema.parse(request.body);
       const item = await createCurso(body, request.usuarioId!);
-      return reply.status(201).send(mapCurso(item));
+      return replyMapped(reply, item, mapCurso, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -75,7 +77,7 @@ export const cursosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Curso não encontrado" });
       }
-      return reply.send(mapCurso(item));
+      return replyMapped(reply, item, mapCurso);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -95,10 +97,17 @@ export const cursosRoutes: FastifyPluginAsync = async (app) => {
 
   app.delete("/cursos/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const item = await desativarCurso(id, request.usuarioId!);
-    if (!item) {
-      return reply.status(404).send({ error: "Curso não encontrado" });
+    try {
+      const item = await desativarCurso(id, request.usuarioId!);
+      if (!item) {
+        return reply.status(404).send({ error: "Curso não encontrado" });
+      }
+      return replyMapped(reply, item, mapCurso);
+    } catch (err) {
+      if (err instanceof DeleteBlockedError) {
+        return reply.status(409).send({ error: err.message });
+      }
+      throw err;
     }
-    return reply.send(mapCurso(item));
   });
 };

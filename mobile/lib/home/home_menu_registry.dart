@@ -10,7 +10,14 @@ import '../screens/perguntas/perguntas_list_screen.dart';
 import '../screens/bairros/bairros_list_screen.dart';
 import '../screens/departamentos/departamentos_list_screen.dart';
 import '../screens/cursos/cursos_list_screen.dart';
-import '../screens/alunos_capacitacao/alunos_capacitacao_list_screen.dart';
+import '../screens/turmas/turmas_list_screen.dart';
+import '../screens/alunos/alunos_list_screen.dart';
+import '../screens/inscricoes/inscricoes_list_screen.dart';
+import '../screens/matricula/matricula_alunos_screen.dart';
+import '../screens/cancelamento_matricula/cancelamento_matricula_alunos_screen.dart';
+import '../screens/atendimento_alunos/atendimento_alunos_screen.dart';
+import '../screens/relatorio_alunos_turma/relatorio_alunos_turma_screen.dart';
+import '../screens/relatorio_submodulos/relatorio_submodulos_list_screen.dart';
 import '../screens/voluntarios/voluntarios_list_screen.dart';
 import '../screens/escolaridades/escolaridades_list_screen.dart';
 import '../screens/cidades/cidades_list_screen.dart';
@@ -86,11 +93,47 @@ abstract final class HomeMenuRegistry {
       subtitle: 'Código e descrição do curso',
       screen: CursosListScreen(),
     ),
-    Programas.alunosCapacitacao: HomeMenuEntry(
+    Programas.turmas: HomeMenuEntry(
+      icon: Icons.groups_outlined,
+      label: 'Cadastro de Turmas',
+      subtitle: 'Turma vinculada ao curso e período',
+      screen: TurmasListScreen(),
+    ),
+    Programas.alunos: HomeMenuEntry(
       icon: Icons.school_outlined,
-      label: 'Alunos de Capacitação Profissional',
-      subtitle: 'Cadastro completo com renda familiar',
-      screen: AlunosCapacitacaoListScreen(),
+      label: 'Cadastro de Alunos',
+      subtitle: 'Dados pessoais do aluno',
+      screen: AlunosListScreen(),
+    ),
+    Programas.inscricoes: HomeMenuEntry(
+      icon: Icons.how_to_reg_outlined,
+      label: 'Inscrição em curso',
+      subtitle: 'Inscrição de aluno em turma',
+      screen: InscricoesListScreen(),
+    ),
+    Programas.matriculaAlunos: HomeMenuEntry(
+      icon: Icons.fact_check_outlined,
+      label: 'Matricular Alunos no Curso',
+      subtitle: 'Selecionar candidatos por turma e vagas',
+      screen: MatriculaAlunosScreen(),
+    ),
+    Programas.cancelamentoMatriculaAlunos: HomeMenuEntry(
+      icon: Icons.person_remove_outlined,
+      label: 'Cancelar Matrícula de Alunos no Curso',
+      subtitle: 'Cancelar matrícula de alunos por turma',
+      screen: CancelamentoMatriculaAlunosScreen(),
+    ),
+    Programas.atendimentoAlunos: HomeMenuEntry(
+      icon: Icons.support_agent_outlined,
+      label: 'Atendimento de Alunos',
+      subtitle: 'Registrar atendimentos de alunos matriculados',
+      screen: AtendimentoAlunosScreen(),
+    ),
+    Programas.relatorioAlunosTurma: HomeMenuEntry(
+      icon: Icons.summarize_outlined,
+      label: 'Relatório de Alunos da Turma',
+      subtitle: 'PDF por curso, turma e situação do aluno',
+      screen: RelatorioAlunosTurmaScreen(),
     ),
     Programas.voluntarios: HomeMenuEntry(
       icon: Icons.volunteer_activism_outlined,
@@ -145,6 +188,12 @@ abstract final class HomeMenuRegistry {
       label: 'Módulos do sistema',
       subtitle: 'Agrupar programas em módulos do menu',
       screen: ModulosSistemaListScreen(),
+    ),
+    Programas.relatorioSubmodulos: HomeMenuEntry(
+      icon: Icons.folder_copy_outlined,
+      label: 'Submódulos de relatórios',
+      subtitle: 'Agrupar relatórios na Home (ex.: IEFA)',
+      screen: RelatorioSubmodulosListScreen(),
     ),
   };
 }

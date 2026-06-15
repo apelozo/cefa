@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
@@ -34,7 +35,7 @@ export const modulosSistemaRoutes: FastifyPluginAsync = async (app) => {
     else if (query.ativo === "false") ativo = false;
 
     const items = await listModulosSistema(ativo);
-    return reply.send(items.map(mapModuloSistema));
+    return replyMappedList(reply, items, mapModuloSistema);
   });
 
   app.get("/modulos-sistema/:id", async (request, reply) => {
@@ -43,14 +44,14 @@ export const modulosSistemaRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Módulo não encontrado" });
     }
-    return reply.send(mapModuloSistema(item));
+    return replyMapped(reply, item, mapModuloSistema);
   });
 
   app.post("/modulos-sistema", async (request, reply) => {
     try {
       const body = createModuloSistemaSchema.parse(request.body);
       const item = await createModuloSistema(body, request.usuarioId!);
-      return reply.status(201).send(mapModuloSistema(item));
+      return replyMapped(reply, item, mapModuloSistema, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -96,7 +97,7 @@ export const modulosSistemaRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Módulo não encontrado" });
       }
-      return reply.send(mapModuloSistema(item));
+      return replyMapped(reply, item, mapModuloSistema);
     } catch (err) {
       if (err instanceof DeleteBlockedError) {
         return reply.status(409).send({ error: err.message });
@@ -113,7 +114,7 @@ export const modulosSistemaRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Módulo não encontrado" });
       }
-      return reply.send(mapModuloSistema(item));
+      return replyMapped(reply, item, mapModuloSistema);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({

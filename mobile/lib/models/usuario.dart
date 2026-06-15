@@ -1,3 +1,4 @@
+import 'auditoria_campos.dart';
 import 'tipo_usuario.dart';
 
 class Usuario {
@@ -10,6 +11,7 @@ class Usuario {
     required this.tipoUsuario,
     required this.ativo,
     required this.createdAt,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
@@ -20,6 +22,7 @@ class Usuario {
   final TipoUsuarioResumo tipoUsuario;
   final bool ativo;
   final DateTime createdAt;
+  final AuditoriaCampos auditoria;
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
@@ -33,6 +36,7 @@ class Usuario {
       ),
       ativo: json['ativo'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 

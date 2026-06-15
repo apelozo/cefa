@@ -44,6 +44,11 @@ String? validateDataBr(String? value) {
   return null;
 }
 
+String? validateDataBrOpcional(String? value) {
+  if (value == null || value.trim().isEmpty) return null;
+  return validateDataBr(value);
+}
+
 /// Converte dd/mm/aa para dd/mm/aaaa (ano com 4 dígitos) para envio à API.
 String normalizarDataBr(String value) {
   final trimmed = value.trim();

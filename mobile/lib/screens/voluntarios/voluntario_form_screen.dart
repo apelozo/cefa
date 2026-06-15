@@ -9,19 +9,17 @@ import '../../models/voluntario.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/cidades/cidade_form_screen.dart';
 import '../../theme/app_layout.dart';
-import '../../theme/app_theme.dart';
 import '../../utils/cpf_formatter.dart';
 import '../../utils/data_br_formatter.dart';
-import '../../utils/datetime_display.dart';
 import '../../utils/form_enter_focus.dart';
 import '../../utils/rg_formatter.dart';
 import '../../utils/snackbar.dart';
 import '../../utils/telefone_formatter.dart';
-import '../../validators/resposta_validator.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_form_text_field.dart';
 import '../../widgets/app_screen_chrome.dart';
 import '../../widgets/app_searchable_select_field.dart';
+import '../../widgets/auditoria_section.dart';
 import '../../widgets/voluntario_departamento_horarios_editor.dart';
 
 class VoluntarioFormScreen extends ConsumerStatefulWidget {
@@ -60,6 +58,8 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
   late final TextEditingController _tempoTrabalhoCentroController;
   late final TextEditingController _fichaMedicaController;
   late final FormEnterFocus _enterFocus;
+  late final FocusNode _estadoCivilFocusNode;
+  late final FocusNode _municipioFocusNode;
 
   String? _estadoCivil;
   int? _cidadeCodigo;
@@ -72,6 +72,8 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
     super.initState();
     final v = widget.voluntario;
     _enterFocus = FormEnterFocus.count(20);
+    _estadoCivilFocusNode = FocusNode();
+    _municipioFocusNode = FocusNode();
     _nomeController = TextEditingController(text: v?.nome ?? '');
     _empresaController = TextEditingController(text: v?.empresa ?? '');
     _funcaoController = TextEditingController(text: v?.funcao ?? '');
@@ -159,6 +161,8 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
   @override
   void dispose() {
     _enterFocus.dispose();
+    _estadoCivilFocusNode.dispose();
+    _municipioFocusNode.dispose();
     _nomeController.dispose();
     _empresaController.dispose();
     _funcaoController.dispose();
@@ -281,11 +285,6 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
   }
 
   List<SearchableSelectOption<int?>> get _cidadeOptions => [
-        const SearchableSelectOption<int?>(
-          value: null,
-          label: 'Não informado',
-          searchText: 'nao informado',
-        ),
         ..._cidades.map(
           (c) => SearchableSelectOption<int?>(
             value: c.codigo,
@@ -299,20 +298,6 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, top: 8),
       child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-    );
-  }
-
-  Widget _auditLine(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontFamily: AppTheme.fontFamily,
-          fontSize: 13,
-          color: Colors.grey.shade700,
-        ),
-      ),
     );
   }
 
@@ -342,6 +327,28 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
       return 'Informe um valor entre 0 e 100';
     }
     return null;
+  }
+
+  void _requestFocus(FocusNode node) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (node.canRequestFocus) {
+        node.requestFocus();
+      }
+    });
+  }
+
+  KeyEventResult _handleDropdownEnter(FocusNode node, KeyEvent event, FocusNode next) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (event.logicalKey != LogicalKeyboardKey.enter &&
+        event.logicalKey != LogicalKeyboardKey.numpadEnter) {
+      return KeyEventResult.ignored;
+    }
+    if (HardwareKeyboard.instance.isShiftPressed) {
+      return KeyEventResult.ignored;
+    }
+    if (!node.hasFocus) return KeyEventResult.ignored;
+    _requestFocus(next);
+    return KeyEventResult.handled;
   }
 
   String? _validateFichaMedica(String? value) {
@@ -432,26 +439,34 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
                     controller: _funcaoController,
                     decoration: const InputDecoration(labelText: 'Função'),
                     textCapitalization: TextCapitalization.words,
+                    onEnterAdvance: () => _requestFocus(_estadoCivilFocusNode),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String?>(
-                    value: _estadoCivil,
+                  Focus(
+                    onKeyEvent: (_, event) => _handleDropdownEnter(
+                      _estadoCivilFocusNode,
+                      event,
+                      _enterFocus.fields[4],
+                    ),
+                    child: DropdownButtonFormField<String?>(
+                      focusNode: _estadoCivilFocusNode,
+                      value: _estadoCivil,
                     decoration: const InputDecoration(labelText: 'Estado civil'),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text('Não informado'),
-                      ),
-                      ...EstadoCivilVoluntario.opcoes.entries.map(
-                        (e) => DropdownMenuItem<String?>(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      ),
-                    ],
+                    hint: const Text('Selecione'),
+                    items: EstadoCivilVoluntario.opcoes.entries
+                        .map(
+                          (e) => DropdownMenuItem<String?>(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
+                        .toList(),
                     onChanged: _saving
                         ? null
                         : (val) => setState(() => _estadoCivil = val),
+                    validator: (v) =>
+                        v == null ? 'Selecione o estado civil' : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   AppFormTextField(
@@ -504,6 +519,7 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
                       LengthLimitingTextInputFormatter(8),
                     ],
                     validator: _validateCep,
+                    onEnterAdvance: () => _requestFocus(_municipioFocusNode),
                   ),
                   const SizedBox(height: 16),
                   AppSearchableSelectField<int?>(
@@ -511,6 +527,8 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
                     value: _cidadeCodigo,
                     options: _cidadeOptions,
                     enabled: !_saving,
+                    focusNode: _municipioFocusNode,
+                    onEnterAdvance: () => _requestFocus(_enterFocus.fields[9]),
                     searchLabel: 'Pesquisar município',
                     emptyListMessage: 'Nenhum município encontrado.',
                     cadastrarLabel: 'Cadastrar município',
@@ -671,24 +689,11 @@ class _VoluntarioFormScreenState extends ConsumerState<VoluntarioFormScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  if (widget.isEditing && v != null) ...[
-                    Text(
-                      'Auditoria',
-                      style: Theme.of(context).textTheme.titleMedium,
+                  if (widget.isEditing && v != null)
+                    AuditoriaSection(
+                      auditoria: v.auditoria,
+                      mostrarExclusao: !v.ativo,
                     ),
-                    const SizedBox(height: 8),
-                    _auditLine(
-                      'Inclusão',
-                      '${formatDateTimeBr(v.dataHoraInclusao)}'
-                      '${v.usuarioInclusaoId != null ? ' · usuário ${v.usuarioInclusaoId}' : ''}',
-                    ),
-                    _auditLine(
-                      'Última alteração',
-                      '${formatDateTimeBr(v.dataHoraAlteracao)}'
-                      '${v.usuarioAlteracaoId != null ? ' · usuário ${v.usuarioAlteracaoId}' : ''}',
-                    ),
-                    const SizedBox(height: 16),
-                  ],
                   AppButton(
                     focusNode: _enterFocus.submitFocusNode,
                     label: widget.isEditing ? 'Salvar' : 'Criar',

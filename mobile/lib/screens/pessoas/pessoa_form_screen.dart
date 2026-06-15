@@ -21,6 +21,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_form_text_field.dart';
 import '../../widgets/app_screen_chrome.dart';
 import '../../widgets/app_searchable_select_field.dart';
+import '../../widgets/auditoria_section.dart';
 
 class PessoaFormScreen extends ConsumerStatefulWidget {
   const PessoaFormScreen({super.key, this.pessoa});
@@ -238,11 +239,6 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
   }
 
   List<SearchableSelectOption<int?>> get _bairroOptions => [
-        const SearchableSelectOption<int?>(
-          value: null,
-          label: 'Não informado',
-          searchText: 'nao informado',
-        ),
         ..._bairros.map(
           (b) => SearchableSelectOption<int?>(
             value: b.codigo,
@@ -253,11 +249,6 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
       ];
 
   List<SearchableSelectOption<int?>> get _cidadeOptions => [
-        const SearchableSelectOption<int?>(
-          value: null,
-          label: 'Não informado',
-          searchText: 'nao informado',
-        ),
         ..._cidades.map(
           (c) => SearchableSelectOption<int?>(
             value: c.codigo,
@@ -457,20 +448,17 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
                   ],
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String?>(
-                    initialValue: _urbanoRural,
+                    value: _urbanoRural,
                     decoration: const InputDecoration(labelText: 'Urbano / Rural'),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text('Não informado'),
-                      ),
-                      ...UrbanoRural.opcoes.map(
-                        (o) => DropdownMenuItem<String?>(
-                          value: o.valor,
-                          child: Text(o.rotulo),
-                        ),
-                      ),
-                    ],
+                    hint: const Text('Selecione'),
+                    items: UrbanoRural.opcoes
+                        .map(
+                          (o) => DropdownMenuItem<String?>(
+                            value: o.valor,
+                            child: Text(o.rotulo),
+                          ),
+                        )
+                        .toList(),
                     onChanged: _saving
                         ? null
                         : (v) => setState(() => _urbanoRural = v),
@@ -507,6 +495,11 @@ class _PessoaFormScreenState extends ConsumerState<PessoaFormScreen> {
                     value: _ativo,
                     onChanged: (v) => setState(() => _ativo = v),
                   ),
+                  if (widget.isEditing && widget.pessoa != null)
+                    AuditoriaSection(
+                      auditoria: widget.pessoa!.auditoria,
+                      mostrarExclusao: !widget.pessoa!.ativo,
+                    ),
                   const SizedBox(height: 32),
                   AppButton(
                     label: widget.isEditing ? 'Salvar' : 'Criar',

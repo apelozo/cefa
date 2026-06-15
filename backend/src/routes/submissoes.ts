@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   buildFiltroTiposFormulario,
@@ -34,7 +35,7 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
         cpf: query.cpf,
         ...filtroTipos,
       });
-      return reply.send(items.map(mapSubmissaoResumo));
+      return replyMappedList(reply, items, mapSubmissaoResumo);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });
@@ -47,7 +48,7 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
     try {
       const body = createSubmissaoSchema.parse(request.body);
       const submissao = await createSubmissao(body, request.usuarioId!);
-      return reply.status(201).send(mapSubmissao(submissao));
+      return replyMapped(reply, submissao, mapSubmissao, 201);
     } catch (err) {
       if (err instanceof TipoFormularioAcessoNegadoError) {
         return reply.status(403).send({ error: err.message });
@@ -85,6 +86,6 @@ export const submissoesRoutes: FastifyPluginAsync = async (app) => {
       }
       throw err;
     }
-    return reply.send(mapSubmissao(submissao));
+    return replyMapped(reply, submissao, mapSubmissao);
   });
 };

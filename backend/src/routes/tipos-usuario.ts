@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import {
@@ -30,7 +31,7 @@ export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
     else if (query.ativo === "false") ativo = false;
 
     const items = await listTiposUsuario(ativo);
-    return reply.send(items.map(mapTipoUsuario));
+    return replyMappedList(reply, items, mapTipoUsuario);
   });
 
   app.get("/tipos-usuario/:id", async (request, reply) => {
@@ -39,14 +40,14 @@ export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Tipo de usuário não encontrado" });
     }
-    return reply.send(mapTipoUsuario(item));
+    return replyMapped(reply, item, mapTipoUsuario);
   });
 
   app.post("/tipos-usuario", async (request, reply) => {
     try {
       const body = createTipoUsuarioSchema.parse(request.body);
       const item = await createTipoUsuario(body, request.usuarioId!);
-      return reply.status(201).send(mapTipoUsuario(item));
+      return replyMapped(reply, item, mapTipoUsuario, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -66,7 +67,7 @@ export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Tipo de usuário não encontrado" });
       }
-      return reply.send(mapTipoUsuario(item));
+      return replyMapped(reply, item, mapTipoUsuario);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -85,7 +86,7 @@ export const tiposUsuarioRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Tipo de usuário não encontrado" });
       }
-      return reply.send(mapTipoUsuario(item));
+      return replyMapped(reply, item, mapTipoUsuario);
     } catch (err) {
       if (err instanceof DeleteBlockedError) {
         return reply.status(409).send({ error: err.message });

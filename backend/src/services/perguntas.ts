@@ -1,5 +1,10 @@
 import { Prisma, TipoCampo } from "@prisma/client";
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { prisma } from "../lib/prisma.js";
 import type {
@@ -403,8 +408,7 @@ export function mapPergunta(
       ordem: number;
       ativo: boolean;
     }>;
-  },
-) {
+  }, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: p.id,
     enunciado: p.enunciado,
@@ -418,6 +422,6 @@ export function mapPergunta(
     ordem: p.ordem,
     ativo: p.ativo,
     opcoes: p.opcoes?.map(mapOpcao),
-    ...mapAuditoria(p),
+    ...mapAuditoria(p, usuarios),
   };
 }

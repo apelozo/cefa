@@ -8,9 +8,11 @@ import '../models/voluntario_departamento_horario.dart';
 import '../providers/auth_provider.dart';
 import '../utils/hora_formatter.dart';
 import '../utils/hora_validator.dart';
+import '../utils/form_enter_focus.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_card.dart';
+import '../widgets/app_form_text_field.dart';
 import '../widgets/record_action_buttons.dart';
 
 /// Vínculos voluntário ↔ departamento (dia da semana e horário).
@@ -225,6 +227,7 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
   late String _diaSemana;
   late final TextEditingController _horaInicioController;
   late final TextEditingController _horaTerminoController;
+  late final FormEnterFocus _enterFocus;
   bool _saving = false;
 
   @override
@@ -236,12 +239,14 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
     _diaSemana = h?.diaSemana ?? DiaSemana.segundaFeira;
     _horaInicioController = TextEditingController(text: h?.horaInicio ?? '');
     _horaTerminoController = TextEditingController(text: h?.horaTermino ?? '');
+    _enterFocus = FormEnterFocus.count(2);
   }
 
   @override
   void dispose() {
     _horaInicioController.dispose();
     _horaTerminoController.dispose();
+    _enterFocus.dispose();
     super.dispose();
   }
 
@@ -330,7 +335,9 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
                         },
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                AppFormTextField(
+                  enterFocus: _enterFocus,
+                  enterIndex: 0,
                   controller: _horaInicioController,
                   decoration: const InputDecoration(
                     labelText: 'Hora início',
@@ -339,17 +346,16 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [HoraInputFormatter()],
                   validator: validateHoraObrigatoria,
-                  onEditingComplete: () {
+                  onEnterAdvance: () {
                     aplicarFormatoHoraAoSair(_horaInicioController);
                     _formKey.currentState?.validate();
-                  },
-                  onFieldSubmitted: (_) {
-                    aplicarFormatoHoraAoSair(_horaInicioController);
-                    _formKey.currentState?.validate();
+                    _enterFocus.onSubmitted(0);
                   },
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                AppFormTextField(
+                  enterFocus: _enterFocus,
+                  enterIndex: 1,
                   controller: _horaTerminoController,
                   decoration: const InputDecoration(
                     labelText: 'Hora término',
@@ -361,13 +367,10 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
                     v,
                     _horaInicioController.text,
                   ),
-                  onEditingComplete: () {
+                  onEnterAdvance: () {
                     aplicarFormatoHoraAoSair(_horaTerminoController);
                     _formKey.currentState?.validate();
-                  },
-                  onFieldSubmitted: (_) {
-                    aplicarFormatoHoraAoSair(_horaTerminoController);
-                    _formKey.currentState?.validate();
+                    _enterFocus.onSubmitted(1);
                   },
                 ),
               ],
@@ -380,10 +383,13 @@ class _HorarioDialogState extends ConsumerState<_HorarioDialog> {
           onPressed: _saving ? null : () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        AppButton(
-          label: 'Salvar',
-          loading: _saving,
-          onPressed: _saving ? null : _save,
+        Focus(
+          focusNode: _enterFocus.submitFocusNode,
+          child: AppButton(
+            label: 'Salvar',
+            loading: _saving,
+            onPressed: _saving ? null : _save,
+          ),
         ),
       ],
     );

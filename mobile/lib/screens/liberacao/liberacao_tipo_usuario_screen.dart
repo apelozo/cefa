@@ -31,8 +31,10 @@ class _LiberacaoTipoUsuarioScreenState
     with SingleTickerProviderStateMixin {
   List<TipoUsuario> _tipos = [];
   TipoUsuario? _selected;
+  List<Programa> _programas = [];
   List<PermissaoLinha> _linhas = [];
   List<TipoFormularioAcessoLinha> _tiposFormulario = [];
+  int? _moduloFiltroCodigo;
   bool _loadingTipos = true;
   bool _loadingPerm = false;
   bool _saving = false;
@@ -89,9 +91,12 @@ class _LiberacaoTipoUsuarioScreenState
         results[0] as List<PermissaoLinha>,
         results[1] as List<Programa>,
       );
+      final programas = results[1] as List<Programa>;
       final acessoTipos = results[2] as TiposFormularioAcessoResumo;
       if (mounted) {
         setState(() {
+          _programas = programas;
+          _moduloFiltroCodigo = null;
           _linhas = linhas;
           _adminTotal =
               linhas.isNotEmpty && linhas.first.perfilAdmin;
@@ -106,6 +111,40 @@ class _LiberacaoTipoUsuarioScreenState
         showErrorSnackBar(context, e.toString());
       }
     }
+  }
+
+  List<({int codigo, String nome})> get _modulosDisponiveis {
+    final porCodigo = <int, String>{};
+    for (final p in _programas) {
+      final codigo = p.moduloCodigo;
+      if (codigo == null) continue;
+      porCodigo.putIfAbsent(
+        codigo,
+        () => p.moduloNome ?? 'Módulo $codigo',
+      );
+    }
+    final entries = porCodigo.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return entries
+        .map((e) => (codigo: e.key, nome: e.value))
+        .toList(growable: false);
+  }
+
+  List<PermissaoLinha> get _linhasProgramasFiltradas {
+    if (_moduloFiltroCodigo == null) return _linhas;
+    final idsModulo = _programas
+        .where((p) => p.moduloCodigo == _moduloFiltroCodigo)
+        .map((p) => p.id)
+        .toSet();
+    return _linhas
+        .where((l) => idsModulo.contains(l.programaId))
+        .toList(growable: false);
+  }
+
+  void _onLinhaProgramaChanged(PermissaoLinha linha, PermissaoLinha atualizada) {
+    final index = _linhas.indexWhere((l) => l.programaId == linha.programaId);
+    if (index < 0) return;
+    setState(() => _linhas[index] = atualizada);
   }
 
   Future<void> _save() async {
@@ -188,18 +227,57 @@ class _LiberacaoTipoUsuarioScreenState
                         Tab(text: 'Tipos de formulário'),
                       ],
                     ),
+                    if (_tabController.index == 0 &&
+                        !_adminTotal &&
+                        _modulosDisponiveis.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int?>(
+                        value: _moduloFiltroCodigo,
+                        decoration: const InputDecoration(
+                          labelText: 'Módulo',
+                        ),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('Todos os módulos'),
+                          ),
+                          ..._modulosDisponiveis.map(
+                            (m) => DropdownMenuItem<int?>(
+                              value: m.codigo,
+                              child: Text('${m.codigo} — ${m.nome}'),
+                            ),
+                          ),
+                        ],
+                        onChanged: (codigo) {
+                          setState(() => _moduloFiltroCodigo = codigo);
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     AppCard(
                       child: AnimatedBuilder(
                         animation: _tabController,
                         builder: (context, _) {
                           if (_tabController.index == 0) {
+                            final linhasVisiveis = _linhasProgramasFiltradas;
+                            if (linhasVisiveis.isEmpty && !_adminTotal) {
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  'Nenhum programa neste módulo.',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              );
+                            }
                             return PermissoesEditor(
-                              linhas: _linhas,
+                              linhas: linhasVisiveis,
                               adminTotal: _adminTotal,
                               readOnly: !podeAlterar || _adminTotal,
                               onChanged: (index, linha) {
-                                setState(() => _linhas[index] = linha);
+                                _onLinhaProgramaChanged(
+                                  linhasVisiveis[index],
+                                  linha,
+                                );
                               },
                             );
                           }

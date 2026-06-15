@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   BairroConflictError,
@@ -36,7 +37,7 @@ export const bairrosRoutes: FastifyPluginAsync = async (app) => {
       codigo,
       nome: query.nome,
     });
-    return reply.send(items.map(mapBairro));
+    return replyMappedList(reply, items, mapBairro);
   });
 
   app.get("/bairros/:id", async (request, reply) => {
@@ -45,14 +46,14 @@ export const bairrosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Bairro não encontrado" });
     }
-    return reply.send(mapBairro(item));
+    return replyMapped(reply, item, mapBairro);
   });
 
   app.post("/bairros", async (request, reply) => {
     try {
       const body = createBairroSchema.parse(request.body);
       const item = await createBairro(body, request.usuarioId!);
-      return reply.status(201).send(mapBairro(item));
+      return replyMapped(reply, item, mapBairro, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -75,7 +76,7 @@ export const bairrosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Bairro não encontrado" });
       }
-      return reply.send(mapBairro(item));
+      return replyMapped(reply, item, mapBairro);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -99,6 +100,6 @@ export const bairrosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Bairro não encontrado" });
     }
-    return reply.send(mapBairro(item));
+    return replyMapped(reply, item, mapBairro);
   });
 };

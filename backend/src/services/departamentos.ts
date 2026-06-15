@@ -3,6 +3,7 @@ import {
   auditAlteracao,
   auditInclusao,
   mapAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { prisma } from "../lib/prisma.js";
@@ -148,12 +149,12 @@ export function mapDepartamento(d: {
   dataHoraInclusao: Date;
   usuarioAlteracaoId: string | null;
   dataHoraAlteracao: Date | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: d.id,
     codigo: d.codigo,
     descricao: d.descricao,
     ativo: d.ativo,
-    ...mapAuditoria(d),
+    ...mapAuditoria(d, usuarios),
   };
 }

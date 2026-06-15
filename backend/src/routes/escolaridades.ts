@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   EscolaridadeConflictError,
@@ -39,7 +40,7 @@ export const escolaridadesRoutes: FastifyPluginAsync = async (app) => {
       codigo,
       descricao: query.descricao,
     });
-    return reply.send(items.map(mapEscolaridade));
+    return replyMappedList(reply, items, mapEscolaridade);
   });
 
   app.get("/escolaridades/:id", async (request, reply) => {
@@ -48,14 +49,14 @@ export const escolaridadesRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Escolaridade não encontrada" });
     }
-    return reply.send(mapEscolaridade(item));
+    return replyMapped(reply, item, mapEscolaridade);
   });
 
   app.post("/escolaridades", async (request, reply) => {
     try {
       const body = createEscolaridadeSchema.parse(request.body);
       const item = await createEscolaridade(body, request.usuarioId!);
-      return reply.status(201).send(mapEscolaridade(item));
+      return replyMapped(reply, item, mapEscolaridade, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -78,7 +79,7 @@ export const escolaridadesRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Escolaridade não encontrada" });
       }
-      return reply.send(mapEscolaridade(item));
+      return replyMapped(reply, item, mapEscolaridade);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -102,6 +103,6 @@ export const escolaridadesRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Escolaridade não encontrada" });
     }
-    return reply.send(mapEscolaridade(item));
+    return replyMapped(reply, item, mapEscolaridade);
   });
 };

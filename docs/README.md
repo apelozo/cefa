@@ -5,9 +5,10 @@ Arquivos temáticos extraídos do índice na raiz: [DOCUMENTACAO.md](../DOCUMENT
 | Arquivo | Assunto |
 |---------|---------|
 | [visao-arquitetura.md](./visao-arquitetura.md) | Produto, stack, arquitetura |
-| [modelo-dados.md](./modelo-dados.md) | Prisma / PostgreSQL (assistido na UI; catálogos; cursos; voluntários; alunos de capacitação) |
+| [modelo-dados.md](./modelo-dados.md) | Prisma / PostgreSQL (assistido na UI; catálogos; cursos; turmas; voluntários; alunos; inscrições; matrícula; cancelamento; atendimentos; **submódulos de relatório**) |
 | [api.md](./api.md) | REST |
 | [mobile.md](./mobile.md) | Flutter |
+| [relatorios.md](./relatorios.md) | PDF e menu do módulo Relatórios (submódulos, submissões, entrevista, alunos matriculados, relatório de alunos da turma) |
 | [setup.md](./setup.md) | Ambiente, scripts, escopo v1 |
 | [deploy-render.md](./deploy-render.md) | Deploy da API no Render + Neon |
 | [historico.md](./historico.md) | Linha do tempo |

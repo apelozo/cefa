@@ -1,9 +1,12 @@
+import 'auditoria_campos.dart';
+
 class Departamento {
   const Departamento({
     required this.id,
     required this.codigo,
     required this.descricao,
     required this.ativo,
+    this.auditoria = const AuditoriaCampos(),
     this.usuarioInclusaoId,
     this.dataHoraInclusao,
     this.usuarioAlteracaoId,
@@ -15,6 +18,7 @@ class Departamento {
   final int codigo;
   final String descricao;
   final bool ativo;
+  final AuditoriaCampos auditoria;
   final String? usuarioInclusaoId;
   final DateTime? dataHoraInclusao;
   final String? usuarioAlteracaoId;
@@ -35,6 +39,7 @@ class Departamento {
       codigo: codigo,
       descricao: json['descricao'] as String,
       ativo: json['ativo'] as bool,
+      auditoria: AuditoriaCampos.fromJson(json),
       usuarioInclusaoId: json['usuarioInclusaoId'] as String?,
       dataHoraInclusao: parseOpt(json['dataHoraInclusao'] as String?),
       usuarioAlteracaoId: json['usuarioAlteracaoId'] as String?,

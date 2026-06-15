@@ -1,7 +1,13 @@
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { prisma } from "../lib/prisma.js";
 import { temAcessoPrograma } from "./permissoes.js";
+import { isModuloRelatoriosId } from "../lib/modulos-relatorio.js";
 import type {
   CreateModuloSistemaInput,
   ModulosProgramasBodyInput,
@@ -120,13 +126,22 @@ export async function setModuloProgramas(
     if (desvinculados.length > 0) {
       await tx.programa.updateMany({
         where: { id: { in: desvinculados.map((p) => p.id) } },
-        data: { moduloSistemaId: null, ...alteracao },
+        data: {
+          moduloSistemaId: null,
+          relatorioSubmoduloId: null,
+          ...alteracao,
+        },
       });
     }
     if (ids.length > 0) {
+      const emRelatorios = await isModuloRelatoriosId(tx, moduloId);
       await tx.programa.updateMany({
         where: { id: { in: ids } },
-        data: { moduloSistemaId: moduloId, ...alteracao },
+        data: {
+          moduloSistemaId: moduloId,
+          ...(emRelatorios ? {} : { relatorioSubmoduloId: null }),
+          ...alteracao,
+        },
       });
     }
     await tx.moduloSistema.update({
@@ -150,6 +165,11 @@ export async function buildMenuModulos(
     include: {
       programas: {
         orderBy: { nome: "asc" },
+        include: {
+          relatorioSubmodulo: {
+            select: { id: true, codigo: true, nome: true, ordem: true },
+          },
+        },
       },
     },
   });
@@ -172,6 +192,10 @@ export async function buildMenuModulos(
           id: p.id,
           codigo: p.codigo,
           nome: p.nome,
+          relatorioSubmoduloId: p.relatorioSubmoduloId,
+          relatorioSubmoduloCodigo: p.relatorioSubmodulo?.codigo ?? null,
+          relatorioSubmoduloNome: p.relatorioSubmodulo?.nome ?? null,
+          relatorioSubmoduloOrdem: p.relatorioSubmodulo?.ordem ?? null,
         })),
       };
     })
@@ -195,7 +219,7 @@ export function mapModuloSistema(m: {
     nome: string;
     autoListagem: boolean;
   }[];
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: m.id,
     codigo: m.codigo,
@@ -203,7 +227,7 @@ export function mapModuloSistema(m: {
     descricao: m.descricao,
     ordem: m.ordem,
     ativo: m.ativo,
-    ...mapAuditoria(m),
+    ...mapAuditoria(m, usuarios),
     programas: m.programas?.map((p) => ({
       id: p.id,
       codigo: p.codigo,

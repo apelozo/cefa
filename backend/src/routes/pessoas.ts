@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
@@ -34,7 +35,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
       cpf: query.cpf,
       rg: query.rg,
     });
-    return reply.send(items.map(mapPessoa));
+    return replyMappedList(reply, items, mapPessoa);
   });
 
   app.get("/pessoas/:id", async (request, reply) => {
@@ -43,14 +44,14 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Assistido não encontrado" });
     }
-    return reply.send(mapPessoa(item));
+    return replyMapped(reply, item, mapPessoa);
   });
 
   app.post("/pessoas", async (request, reply) => {
     try {
       const body = createPessoaSchema.parse(request.body);
       const item = await createPessoa(body, request.usuarioId!);
-      return reply.status(201).send(mapPessoa(item));
+      return replyMapped(reply, item, mapPessoa, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -79,7 +80,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Assistido não encontrado" });
       }
-      return reply.send(mapPessoa(item));
+      return replyMapped(reply, item, mapPessoa);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -104,7 +105,7 @@ export const pessoasRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Assistido não encontrado" });
       }
-      return reply.send(mapPessoa(item));
+      return replyMapped(reply, item, mapPessoa);
     } catch (err) {
       if (err instanceof DeleteBlockedError) {
         return reply.status(409).send({ error: err.message });

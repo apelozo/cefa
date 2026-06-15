@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 
 import type { FastifyPluginAsync } from "fastify";
 
@@ -127,7 +128,7 @@ export const entrevistasAssistidoRoutes: FastifyPluginAsync = async (app) => {
 
       const items = await listEntrevistasAssistido(query);
 
-      return reply.send(items.map(mapEntrevistaAssistidoResumo));
+      return replyMappedList(reply, items, mapEntrevistaAssistidoResumo);
 
     } catch (err) {
 
@@ -153,7 +154,7 @@ export const entrevistasAssistidoRoutes: FastifyPluginAsync = async (app) => {
 
       );
 
-      return reply.status(201).send(mapEntrevistaAssistido(entrevista));
+      return replyMapped(reply, entrevista, mapEntrevistaAssistido, 201);
 
     } catch (err) {
 
@@ -177,7 +178,7 @@ export const entrevistasAssistidoRoutes: FastifyPluginAsync = async (app) => {
 
     }
 
-    return reply.send(mapEntrevistaAssistido(entrevista));
+    return replyMapped(reply, entrevista, mapEntrevistaAssistido);
 
   });
 
@@ -207,7 +208,7 @@ export const entrevistasAssistidoRoutes: FastifyPluginAsync = async (app) => {
 
       }
 
-      return reply.send(mapEntrevistaAssistido(entrevista));
+      return replyMapped(reply, entrevista, mapEntrevistaAssistido);
 
     } catch (err) {
 

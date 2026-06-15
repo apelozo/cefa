@@ -5,11 +5,10 @@ import '../../constants/uf_brasil.dart';
 import '../../models/cidade.dart';
 import '../../providers/api_provider.dart';
 import '../../theme/app_layout.dart';
-import '../../theme/app_theme.dart';
-import '../../utils/datetime_display.dart';
 import '../../utils/form_enter_focus.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/auditoria_section.dart';
 import '../../widgets/app_screen_chrome.dart';
 
 class CidadeFormScreen extends ConsumerStatefulWidget {
@@ -102,20 +101,6 @@ class _CidadeFormScreenState extends ConsumerState<CidadeFormScreen> {
     }
   }
 
-  Widget _auditLine(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontFamily: AppTheme.fontFamily,
-          fontSize: 13,
-          color: Colors.grey.shade700,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = widget.cidade;
@@ -182,31 +167,11 @@ class _CidadeFormScreenState extends ConsumerState<CidadeFormScreen> {
                     },
             ),
             const SizedBox(height: 24),
-            if (widget.isEditing && c != null) ...[
-              Text(
-                'Auditoria',
-                style: Theme.of(context).textTheme.titleMedium,
+            if (widget.isEditing && c != null)
+              AuditoriaSection(
+                auditoria: c.auditoria,
+                mostrarExclusao: !c.ativo,
               ),
-              const SizedBox(height: 8),
-              _auditLine(
-                'Inclusão',
-                '${formatDateTimeBr(c.dataHoraInclusao)}'
-                '${c.usuarioInclusaoId != null ? ' · usuário ${c.usuarioInclusaoId}' : ''}',
-              ),
-              _auditLine(
-                'Última alteração',
-                '${formatDateTimeBr(c.dataHoraAlteracao)}'
-                '${c.usuarioAlteracaoId != null ? ' · usuário ${c.usuarioAlteracaoId}' : ''}',
-              ),
-              if (!c.ativo) ...[
-                _auditLine(
-                  'Desativação (soft delete)',
-                  '${formatDateTimeBr(c.dataHoraExclusao)}'
-                  '${c.usuarioExclusaoId != null ? ' · usuário ${c.usuarioExclusaoId}' : ''}',
-                ),
-              ],
-              const SizedBox(height: 16),
-            ],
             AppButton(
               focusNode: _enterFocus.submitFocusNode,
               label: widget.isEditing ? 'Salvar' : 'Criar',

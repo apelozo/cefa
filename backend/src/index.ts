@@ -10,7 +10,10 @@ import { authRoutes } from "./routes/auth.js";
 import { bairrosRoutes } from "./routes/bairros.js";
 import { departamentosRoutes } from "./routes/departamentos.js";
 import { cursosRoutes } from "./routes/cursos.js";
-import { alunosCapacitacaoRoutes } from "./routes/alunos-capacitacao.js";
+import { turmasRoutes } from "./routes/turmas.js";
+import { alunosRoutes } from "./routes/alunos.js";
+import { inscricaoAtendimentosRoutes } from "./routes/inscricao-atendimentos.js";
+import { inscricoesRoutes } from "./routes/inscricoes.js";
 import { voluntariosRoutes } from "./routes/voluntarios.js";
 import { voluntarioDepartamentoHorariosRoutes } from "./routes/voluntario-departamento-horarios.js";
 import { escolaridadesRoutes } from "./routes/escolaridades.js";
@@ -30,6 +33,7 @@ import { tiposFormularioRoutes } from "./routes/tipos-formulario.js";
 import { tiposUsuarioRoutes } from "./routes/tipos-usuario.js";
 
 import { modulosSistemaRoutes } from "./routes/modulos-sistema.js";
+import { relatorioSubmodulosRoutes } from "./routes/relatorio-submodulos.js";
 
 import { usuariosRoutes } from "./routes/usuarios.js";
 
@@ -71,7 +75,10 @@ await app.register(bairrosRoutes);
 await app.register(escolaridadesRoutes);
 await app.register(departamentosRoutes);
 await app.register(cursosRoutes);
-await app.register(alunosCapacitacaoRoutes);
+await app.register(turmasRoutes);
+await app.register(alunosRoutes);
+await app.register(inscricoesRoutes);
+await app.register(inscricaoAtendimentosRoutes);
 await app.register(voluntarioDepartamentoHorariosRoutes);
 await app.register(voluntariosRoutes);
 
@@ -85,6 +92,7 @@ await app.register(usuariosRoutes);
 await app.register(programasRoutes);
 
 await app.register(modulosSistemaRoutes);
+await app.register(relatorioSubmodulosRoutes);
 
 
 

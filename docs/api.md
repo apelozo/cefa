@@ -10,19 +10,32 @@ Rotas protegidas exigem header `Authorization: Bearer <token>` (exceto `/health`
 
 ### Campos de auditoria nas respostas JSON
 
-Em recursos criados ou atualizados via API autenticada, o JSON inclui (além dos dados do recurso):
+Em recursos criados ou atualizados via API autenticada, o JSON inclui (além dos dados do recurso) os IDs e instantes gravados no banco, mais campos **somente leitura** com o login e o nome completo do usuário (resolvidos em `backend/src/lib/auditoria.ts` via `enrichUsuarioMap` + `mapAuditoria` / `mapSoftDeleteAuditoria`; rotas usam `replyMapped` / `replyMappedList` em `backend/src/lib/resposta-api.ts`, que **aguardam** mappers assíncronos antes de enviar o corpo):
 
 ```json
 {
   "usuarioInclusaoId": "uuid-do-usuario",
   "dataHoraInclusao": "2026-05-18T14:30:00.000Z",
+  "usuarioInclusaoNomeUsuario": "alexandre",
+  "usuarioInclusaoNome": "Alexandre Silva",
   "usuarioAlteracaoId": "uuid-do-usuario",
   "dataHoraAlteracao": "2026-05-18T15:00:00.000Z",
+  "usuarioAlteracaoNomeUsuario": "maria",
+  "usuarioAlteracaoNome": "Maria Santos",
   "createdAt": "2026-05-18T14:30:00.000Z"
 }
 ```
 
-`createdAt` repete `dataHoraInclusao` para o app Flutter legado. O cliente **não** envia esses campos no body de POST/PUT.
+Em entidades com **soft delete** que gravam exclusão lógica (`usuarioExclusaoId`, `dataHoraExclusao`), a resposta pode incluir também `usuarioExclusaoNomeUsuario` e `usuarioExclusaoNome` (ex.: bairros, cidades, escolaridades, assistidos, voluntários, alunos).
+
+| Campo (leitura) | Origem |
+|-----------------|--------|
+| `usuario*NomeUsuario` | `usuarios.nome_usuario` (login) |
+| `usuario*Nome` | `usuarios.nome` (nome completo) |
+
+Se o ID de auditoria for `null` (sync/seed/migração antiga), os campos `usuario*NomeUsuario` e `usuario*Nome` vêm `null`. O app Flutter **não** exibe UUID na UI — usa `AuditoriaSection` com `nomeUsuario` e nome completo quando disponíveis ([mobile.md § auditoria](./mobile.md#bloco-de-auditoria-nas-telas)).
+
+`createdAt` repete `dataHoraInclusao` para compatibilidade. O cliente **não** envia campos de auditoria no body de POST/PUT.
 
 ### Health
 
@@ -70,12 +83,12 @@ GET /health
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `GET` | `/programas` | Lista para liberação e cadastro de módulos (inclui `moduloSistemaId`, `moduloCodigo`, `moduloNome`) |
+| `GET` | `/programas` | Lista para liberação e cadastro de módulos (inclui `moduloSistemaId`, `moduloCodigo`, `moduloNome`, `relatorioSubmoduloId`, `relatorioSubmoduloCodigo`, `relatorioSubmoduloNome`) |
 | `GET` | `/programas/:id` | Detalhe |
-| `POST` | `/programas` | Cria programa (`codigo`, `nome`, `autoListagem`, `moduloSistemaId` opcional) — permissão `modulos_sistema` incluir |
-| `PUT` | `/programas/:id` | Atualiza nome, `autoListagem` e vínculo ao módulo — permissão `modulos_sistema` alterar |
+| `POST` | `/programas` | Cria programa (`codigo`, `nome`, `autoListagem`, `moduloSistemaId` opcional, `relatorioSubmoduloId` quando módulo = Relatórios) — permissão `modulos_sistema` incluir |
+| `PUT` | `/programas/:id` | Atualiza nome, `autoListagem`, vínculo ao módulo e submódulo — permissão `modulos_sistema` alterar |
 
-**Exemplo — criar programa:**
+**Exemplo — criar programa (módulo Relatórios):**
 
 ```json
 POST /programas
@@ -83,17 +96,30 @@ POST /programas
   "codigo": "meu_relatorio",
   "nome": "Meu relatório",
   "autoListagem": true,
+  "moduloSistemaId": "uuid-do-modulo-relatorios",
+  "relatorioSubmoduloId": "uuid-do-submodulo-iefa"
+}
+```
+
+**Exemplo — criar programa (outro módulo):**
+
+```json
+POST /programas
+{
+  "codigo": "meu_programa",
+  "nome": "Meu programa",
+  "autoListagem": true,
   "moduloSistemaId": "uuid-do-modulo-opcional"
 }
 ```
 
-O código é único e imutável após a criação. Programas criados pela API aparecem na **liberação de acesso** e na lista de **Módulos do sistema** (mesma consulta `GET /programas`).
+O código é único e imutável após a criação. Programas do módulo **Relatórios** (`modulos_sistema.codigo = 3`) **exigem** `relatorioSubmoduloId`. Programas criados pela API aparecem na **liberação de acesso** e na lista de **Módulos do sistema** (mesma consulta `GET /programas`).
 
 ### Módulos do sistema
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `GET` | `/modulos-sistema/menu` | Menu da Home: módulos ativos + programas acessíveis ao usuário (**só autenticação**, sem flag de programa) |
+| `GET` | `/modulos-sistema/menu` | Menu da Home: módulos ativos (ordenados por **`ordem`**, depois **`nome`**) + programas acessíveis ao usuário, com campos de submódulo quando vinculados (**só autenticação**, sem flag de programa) |
 | `GET` | `/modulos-sistema` | Lista (`?ativo=`) com programas vinculados |
 | `GET` | `/modulos-sistema/:id` | Detalhe com programas |
 | `POST` | `/modulos-sistema` | Cria (`nome`, `descricao`, `ordem`, `ativo`); `codigo` inteiro sequencial gerado no servidor (`max(codigo)+1`) |
@@ -114,6 +140,44 @@ POST /modulos-sistema
 ```
 
 Resposta inclui `codigo` gerado (ex.: `3`). O campo `codigo` é **imutável** e não entra no `PUT`.
+
+### Submódulos de relatórios
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/relatorio-submodulos` | Lista (`?ativo=`, `?codigo=`, `?nome=`) — programa `relatorio_submodulos` |
+| `GET` | `/relatorio-submodulos/:id` | Detalhe |
+| `POST` | `/relatorio-submodulos` | Cria (`codigo`, `nome`, `descricao`, `ordem`, `ativo`) |
+| `PUT` | `/relatorio-submodulos/:id` | Atualiza (código imutável) |
+| `DELETE` | `/relatorio-submodulos/:id` | Exclusão **física**; **409** se houver programas vinculados |
+
+**Exemplo — criar submódulo:**
+
+```json
+POST /relatorio-submodulos
+{
+  "codigo": "iefa",
+  "nome": "IEFA",
+  "descricao": "Relatórios do IEFA",
+  "ordem": 1,
+  "ativo": true
+}
+```
+
+**Exemplo — resposta do menu (trecho de programa com submódulo):**
+
+```json
+{
+  "codigo": "relatorio_alunos_turma",
+  "nome": "Relatório de Alunos da Turma",
+  "relatorioSubmoduloId": "uuid",
+  "relatorioSubmoduloCodigo": "iefa",
+  "relatorioSubmoduloNome": "IEFA",
+  "relatorioSubmoduloOrdem": 1
+}
+```
+
+`GET /modulos-sistema/menu` inclui nos programas os campos de submódulo quando vinculados. Programas do módulo **Relatórios** exigem `relatorioSubmoduloId` em `POST`/`PUT` `/programas`.
 
 ### Tipos de formulário
 
@@ -446,7 +510,7 @@ Catálogo de cursos (código sequencial automático, descrição, ativo, auditor
 | `GET` | `/cursos/:id` | Detalhe |
 | `POST` | `/cursos` | Cria (`descricao`) — `codigo` gerado automaticamente |
 | `PUT` | `/cursos/:id` | Atualiza (`descricao`); **não** altera `codigo` |
-| `DELETE` | `/cursos/:id` | Desativa (`ativo = false`) |
+| `DELETE` | `/cursos/:id` | Desativa (`ativo = false`); **409** se existir turma ativa vinculada |
 
 **Exemplo — criar curso:**
 
@@ -457,44 +521,265 @@ POST /cursos
 }
 ```
 
-### Alunos de capacitação profissional
+### Alunos (`/alunos`)
 
-Cadastro com abas (dados pessoais, endereço/contato, informações adicionais, renda familiar). Resposta inclui `idade` (calculada de `dtNascimento`) e `rendaPerCapita` (soma das rendas ÷ quantidade de integrantes com nome).
+Cadastro com **dados pessoais**, **endereço** e **contato** (tela **Cadastro de Alunos**). Implementação: `backend/src/services/alunos.ts` (`mapAlunoLista` na listagem; `mapAluno` no detalhe e após `POST`/`PUT`).
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `GET` | `/alunos-capacitacao` | Lista (`?ativo=`; `?nome=`; `?cpf=`) |
-| `GET` | `/alunos-capacitacao/:id` | Detalhe com `rendasFamiliares[]` |
-| `POST` | `/alunos-capacitacao` | Cria (body completo + `rendasFamiliares`) |
-| `PUT` | `/alunos-capacitacao/:id` | Atualiza (substitui linhas de renda) |
-| `DELETE` | `/alunos-capacitacao/:id` | Desativa (`ativo = false`) |
+| `GET` | `/alunos` | Lista enxuta (`?ativo=`; `?nome=`; `?cpf=`) — **sem joins** nem auditoria; ver exemplo abaixo |
+| `GET` | `/alunos/:id` | Detalhe completo (FKs resolvidas, auditoria, campos formatados) |
+| `POST` | `/alunos` | Cria |
+| `PUT` | `/alunos/:id` | Atualiza |
+| `DELETE` | `/alunos/:id` | Desativa (`ativo = false`) |
 
-`estadoCivil`: `CASADO`, `DIVORCIADO`, `SEPARADO`, `SOLTEIRO`, `VIUVO`. `tipoCasa`: `PROPRIA`, `CEDIDA`, `ALUGUEL` (com `valorAluguel` obrigatório se `ALUGUEL`).
+`estadoCivil`: `CASADO`, `DIVORCIADO`, `SEPARADO`, `SOLTEIRO`, `VIUVO`.
+
+**Exemplo — listagem (`GET /alunos`):**
+
+```json
+[
+  {
+    "id": "uuid",
+    "nome": "João da Silva",
+    "cpf": "12345678901",
+    "cpfFormatado": "123.456.789-01",
+    "dtNascimento": "10/05/1990",
+    "idade": 35,
+    "ativo": true
+  }
+]
+```
 
 **Exemplo — criar aluno (trecho):**
 
 ```json
-POST /alunos-capacitacao
+POST /alunos
 {
   "nome": "João da Silva",
   "nomeSocial": "João",
   "estadoCivil": "SOLTEIRO",
+  "dtExpedicaoRg": "15/03/2010",
   "dtNascimento": "10/05/1990",
   "naturalidadeCodigo": 1,
   "escolaridadeCodigo": 2,
+  "nomeUltimaEscola": "Escola Municipal Central",
+  "endereco": "Rua das Flores",
+  "enderecoNumero": "100",
+  "bairro": "Centro",
+  "cep": "12345678",
   "cidadeCodigo": 1,
-  "tipoCasa": "ALUGUEL",
-  "valorAluguel": 850.00,
+  "telefone": "1133334444",
+  "celular": "11999998888",
+  "telefoneRecado": "1188887777",
+  "email": "joao@email.com"
+}
+```
+
+**Resposta de `POST`/`PUT`/`GET /:id` (trecho):** inclui `idade` (calculada), rótulos (`estadoCivilRotulo`, `naturalidadeNome`, `cidadeNome`, `escolaridadeDescricao`), campos formatados (`cpfFormatado`, `cepFormatado`, `telefoneFormatado`, etc.) e auditoria.
+
+### Turmas (`/turmas`)
+
+Cadastro de **turmas** vinculadas a um **curso** (tela **Cadastro de Turmas**). Implementação: `backend/src/services/turmas.ts`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/turmas` | Lista (`?ativo=`; `?codigo=`; `?nome=`; `?cursoCodigo=`; `?cursoDescricao=`; `?periodo=`; `?situacao=`) |
+| `GET` | `/turmas/:id` | Detalhe com auditoria |
+| `POST` | `/turmas` | Cria — `codigo` gerado |
+| `PUT` | `/turmas/:id` | Atualiza |
+| `DELETE` | `/turmas/:id` | Desativa (`ativo = false`) — **409** se houver inscrições ativas |
+
+`periodo`: `MANHA`, `TARDE`, `NOITE`. `situacao`: `ABERTA`, `FECHADA` (padrão `ABERTA` no `POST`). `cursoCodigo` deve referenciar curso **ativo**. **409** ao criar/alterar para `ABERTA` se já existir outra turma aberta no mesmo curso + período (mensagem orienta finalizar a turma existente).
+
+**Exemplo — criar turma:**
+
+```json
+POST /turmas
+{
+  "nome": "Informática — Turma A",
+  "cursoCodigo": 2,
+  "periodo": "MANHA",
+  "situacao": "ABERTA"
+}
+```
+
+### Inscrições (`/inscricoes`)
+
+Inscrição de **aluno** em **turma** (tela **Inscrição em curso**). Implementação: `backend/src/services/inscricoes.ts` (`mapInscricaoLista` na listagem; `mapInscricao` síncrono no detalhe e após `POST`/`PUT`/`DELETE` via `replyMapped`).
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/inscricoes` | Lista (`?ativo=`; `?codigo=`; `?alunoId=`; `?alunoNome=`; `?alunoCpf=`; `?turmaCodigo=`; `?turmaNome=`; `?cursoCodigo=`; `?cursoDescricao=`) — joins em aluno/turma/curso para rótulos; inclui `matriculado` e `matriculaCancelada`; filtros por ID/código têm precedência sobre busca textual no mesmo eixo |
+| `GET` | `/inscricoes/:id` | Detalhe completo (informações gerais, `rendaFamiliar`, `rendaPerCapita`, auditoria) |
+| `POST` | `/inscricoes` | Cria — `codigo` gerado; corpo completo incluindo `rendaFamiliar` |
+| `PUT` | `/inscricoes/:id` | Atualiza corpo completo; `rendaFamiliar` substitui todas as linhas |
+| `DELETE` | `/inscricoes/:id` | Desativa (`ativo = false`) |
+
+`alunoId` e `turmaCodigo` obrigatórios; turma **ativa**; novas inscrições e troca de turma exigem turma **aberta** (`situacao = ABERTA`). Resposta inclui `turmaCodigo`, `turmaNome`, `cursoCodigo`, `cursoDescricao`, `periodo`/`periodoRotulo` (da turma). Campos condicionais (SENAC/SENAI, encaminhamento, necessidade especial, medicação) são limpos na gravação quando o checkbox correspondente é `false` — `fazAcompanhamentoMedico` é independente de `tomaMedicacao`/`quaisMedicacoes`.
+
+**Exemplo — listagem (`GET /inscricoes`):**
+
+```json
+[
+  {
+    "id": "uuid",
+    "codigo": 1,
+    "alunoId": "uuid-aluno",
+    "alunoNome": "João da Silva",
+    "alunoCpf": "12345678901",
+    "alunoCpfFormatado": "123.456.789-01",
+    "turmaCodigo": 1,
+    "turmaNome": "Informática — Turma A",
+    "cursoCodigo": 2,
+    "cursoDescricao": "Informática básica",
+    "dtCurso": "10/06/2026",
+    "periodo": "MANHA",
+    "periodoRotulo": "Manhã",
+    "matriculado": true,
+    "matriculaCancelada": false,
+    "ativo": true
+  }
+]
+```
+
+**Exemplo — criar inscrição (trecho):**
+
+```json
+POST /inscricoes
+{
+  "alunoId": "uuid-aluno",
+  "turmaCodigo": 1,
+  "dtCurso": "10/06/2026",
   "jaFezCursoSenacSenai": true,
-  "cursoSenacSenaiDescricao": "Eletricista",
-  "cursoSenacSenaiAno": 2018,
-  "rendasFamiliares": [
-    { "nome": "Maria Silva", "idade": 45, "renda": 1500, "parentesco": "Mãe", "profissao": "Doméstica" }
+  "cursoSenacSenaiDescricao": "Excel básico",
+  "possuiEncaminhamento": false,
+  "possuiNecessidadeEspecial": false,
+  "fazAcompanhamentoMedico": false,
+  "tomaMedicacao": true,
+  "quaisMedicacoes": "Losartana 50mg",
+  "vacinacao": "Em dia",
+  "alergias": "Nenhuma",
+  "rendaFamiliar": [
+    {
+      "nome": "Maria Silva",
+      "idade": 45,
+      "renda": "1500,00",
+      "parentesco": "Mãe",
+      "profissao": "Doméstica"
+    }
   ]
 }
 ```
 
-**Resposta (trecho):** inclui `idade` (calculada), `rendaPerCapita`, `rendasFamiliares[]`, rótulos (`estadoCivilRotulo`, `tipoCasaRotulo`, nomes de município) e auditoria.
+**Resposta de `POST`/`PUT`/`GET /:id` (trecho):** inclui `rendaFamiliar` (array com `rendaFormatada`), `rendaPerCapita`, `rendaPerCapitaFormatada`, `matriculado`, `matriculaCancelada`, `dtInicioCurso`, `usuarioMatriculaId`, `dataHoraMatricula`, `usuarioCancelamentoMatriculaId`, `dataHoraCancelamentoMatricula`, rótulos de aluno/curso/período, campos formatados e auditoria.
+
+### Matrícula de inscrições (`/inscricoes/matricula`)
+
+Processo **Matricular Alunos no Curso** (programa `matricula_alunos`). Implementação: `backend/src/services/inscricao-matricula.ts`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/inscricoes/matricula/candidatos` | Candidatos da turma (`?turmaCodigo=`) — **exclui** inscrições com `matriculaCancelada=true`; ordenação: encaminhamento primeiro, depois menor renda per capita; inclui `totalMatriculados` |
+| `POST` | `/inscricoes/matricula` | Grava matrícula dos IDs selecionados |
+
+Corpo do `POST`:
+
+```json
+{
+  "turmaCodigo": 1,
+  "dtInicioCurso": "10/06/2026",
+  "vagas": 20,
+  "inscricaoIds": ["uuid-inscricao-1", "uuid-inscricao-2"]
+}
+```
+
+`dtInicioCurso`: na UI do app, rótulo **Data da matrícula** (pré-preenchida com hoje na inclusão).
+
+Regras: `inscricaoIds` contém apenas inscrições **ainda não matriculadas** (IDs já matriculados são ignorados); novas matrículas gravam `matriculado = true`, `dtInicioCurso`, `usuarioMatriculaId` e `dataHoraMatricula`; quantidade de IDs novos ≤ vagas disponíveis (`vagas` − matriculados atuais, contando só `matriculado=true` e `matriculaCancelada=false`); **409** se não houver vagas disponíveis; **400** se nenhum ID novo for informado; **400** se algum ID tiver `matriculaCancelada=true` (*Não é possível matricular aluno com matrícula cancelada nesta turma*).
+
+**Resposta (lista de candidatos após gravar ou no GET):** `turmaCodigo`, `turmaNome`, `cursoCodigo`, `cursoDescricao`, `periodo`, `periodoRotulo`, `totalMatriculados`, `candidatos[]` com `alunoNome`, `alunoIdade`, `escolaridadeDescricao`, `orgaoEncaminhamento`, `rendaPerCapita`, `matriculado`.
+
+### Cancelamento de matrícula (`/inscricoes/cancelamento-matricula`)
+
+Processo **Cancelar Matrícula de Alunos no Curso** (programa `cancelamento_matricula_alunos`). Implementação: `backend/src/services/inscricao-cancelamento-matricula.ts`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/inscricoes/cancelamento-matricula/matriculados` | Alunos matriculados ativos da turma (`?turmaCodigo=`) — `matriculado=true` e `matriculaCancelada=false`; ordenação por nome do aluno |
+| `POST` | `/inscricoes/cancelamento-matricula` | Cancela matrícula dos IDs selecionados |
+
+Corpo do `POST`:
+
+```json
+{
+  "turmaCodigo": 1,
+  "inscricaoIds": ["uuid-inscricao-1", "uuid-inscricao-2"]
+}
+```
+
+Regras: cada ID deve pertencer à turma e estar **matriculado** (`matriculaCancelada=false`); grava `matriculado=false`, `matriculaCancelada=true`, `usuarioCancelamentoMatriculaId` e `dataHoraCancelamentoMatricula`; **400** se nenhum ID válido ou inscrição não matriculada na turma.
+
+**Resposta (GET e após POST):** `turmaCodigo`, `turmaNome`, `cursoCodigo`, `cursoDescricao`, `periodo`, `periodoRotulo`, `totalMatriculados`, `matriculados[]` com `alunoNome`, `alunoCpf`, `alunoCpfFormatado`, `dataMatricula` (`dtInicioCurso` ou data de `dataHoraMatricula`), `alunoIdade`, `escolaridadeDescricao`, `orgaoEncaminhamento`.
+
+### Relatório de Alunos da Turma (`/inscricoes/relatorio-alunos-turma`)
+
+Processo **Relatório de Alunos da Turma** (programa `relatorio_alunos_turma`). Implementação: `backend/src/services/relatorio-alunos-turma.ts`. Geração do PDF no app — ver [relatorios.md §8](./relatorios.md#8-relatório-de-alunos-da-turma-implementado).
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/inscricoes/relatorio-alunos-turma/cursos` | Cursos **ativos** para o filtro da tela (programa `relatorio_alunos_turma`; não exige `cursos` na liberação) |
+| `GET` | `/inscricoes/relatorio-alunos-turma/turmas` | Turmas **ativas** do curso (`?cursoCodigo=` obrigatório) |
+| `GET` | `/inscricoes/relatorio-alunos-turma` | Dados do relatório conforme filtros |
+
+**Query em `GET /inscricoes/relatorio-alunos-turma`:**
+
+| Parâmetro | Descrição |
+|-----------|-----------|
+| `cursoCodigo` | Opcional — omitir = **todos os cursos** |
+| `turmaCodigo` | Opcional — só com `cursoCodigo`; omitir = **todas as turmas** do curso; **400** se informado sem curso |
+| `situacao` | `MATRICULADO`, `MATRICULA_CANCELADA`, `A_MATRICULAR` ou `TODAS` (padrão `TODAS`) — filtra **linhas** da tabela; o **resumo** por turma sempre traz totais completos |
+
+**Situação do aluno (regra):**
+
+| Código | Condição |
+|--------|----------|
+| `MATRICULADO` | `matriculado=true` e `matriculaCancelada=false` |
+| `MATRICULA_CANCELADA` | `matriculaCancelada=true` |
+| `A_MATRICULAR` | `matriculado=false` e `matriculaCancelada=false` |
+
+**Resposta (trecho):** `filtros` (`todosCursos`, `todasTurmas`, `cursoCodigo`, `turmaCodigo`, `situacao`); `secoes[]` por turma (`cursoDescricao`, `turmaNome`, `periodoRotulo`, `situacaoTurmaRotulo`, `alunos[]`, `resumo` com `matriculados`, `matriculasCanceladas` e `aMatricular` se turma **Aberta**); `resumoGeral[]` com totais por turma para a página final do PDF.
+
+Cada aluno em `alunos[]`: `alunoNome`, `alunoCpf`/`alunoCpfFormatado`, `alunoIdade`, `escolaridadeDescricao`, `dataInscricao`, `dataMatricula`, `dataCancelamento`, `situacao`, `dataUltSituacao`, `quantidadeAtendimentos` (contagem em `inscricao_atendimentos`).
+
+### Atendimentos de alunos (`/inscricao-atendimentos`)
+
+Processo **Atendimento de Alunos** (programa `atendimento_alunos`). Implementação: `backend/src/services/inscricao-atendimentos.ts`.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/inscricao-atendimentos/alunos-matriculados` | Pesquisa alunos na turma (`?turmaCodigo=` obrigatório; `?nome=` e/ou `?cpf=` — exige ao menos um) — inclui **matriculados** e com **matrícula cancelada** (para consultar histórico) |
+| `GET` | `/inscricao-atendimentos` | Lista atendimentos (`?inscricaoId=` **ou** `?turmaCodigo=` + `?alunoId=`) — exige inscrição **ativa** (não exige matrícula ativa) |
+| `GET` | `/inscricao-atendimentos/:id` | Detalhe com auditoria |
+| `POST` | `/inscricao-atendimentos` | Cria atendimento |
+| `PUT` | `/inscricao-atendimentos/:id` | Altera data e descrição |
+| `DELETE` | `/inscricao-atendimentos/:id` | Exclusão **física** |
+
+**Exemplo — criar atendimento:**
+
+```json
+POST /inscricao-atendimentos
+{
+  "turmaCodigo": 1,
+  "alunoId": "uuid-aluno",
+  "dataAtendimento": "11/06/2026",
+  "descricao": "Orientação sobre frequência e material didático."
+}
+```
+
+Regras: **`POST`** exige inscrição **ativa** e **matriculada** (`matriculado=true`, `matriculaCancelada=false`); **`GET`** (lista), **`PUT`** e **`DELETE`** exigem apenas inscrição **ativa** — histórico permanece acessível após cancelamento da matrícula; `descricao` até 2000 caracteres; listagem retorna `descricaoResumo` (50 caracteres) e flags `matriculado` / `matriculaCancelada`; desativar inscrição com atendimentos → **409**.
+
+**Resposta `GET /inscricao-atendimentos` (trecho):** `inscricaoId`, `alunoNome`, `turmaNome`, `cursoDescricao`, `matriculado`, `matriculaCancelada`, `atendimentos[]` com `dataAtendimento` e `descricaoResumo`.
 
 ### Voluntários
 
@@ -709,5 +994,15 @@ GET /submissoes?tipoFormularioId=uuid&nome=Maria
 11. **Exclusão de usuário** bloqueada se for o último administrador ativo (**409**).
 12. **Exclusão de módulo** bloqueada se houver programas vinculados (**409**).
 13. **Auditoria automática:** POST/PUT preenchem usuário e data/hora (UTC) conforme usuário do JWT; ver [Auditoria (todas as tabelas)](./modelo-dados.md#auditoria-todas-as-tabelas).
+14. **Alunos (`/alunos`):** programa `alunos`; tabela `alunos` (sem vínculo com `pessoas`); `DELETE` desativa (`ativo = false`); `cpf` único quando informado; `naturalidadeCodigo`, `cidadeCodigo` e `escolaridadeCodigo` devem referenciar município/escolaridade **ativos**; telefones 10–11 dígitos; CEP 8 dígitos; `GET /alunos` (lista) retorna só `id`, `nome`, `cpf`, `cpfFormatado`, `dtNascimento`, `idade`, `ativo` — sem joins; detalhe e gravação usam `mapAluno` com todos os campos e `idade` calculada de `dtNascimento`.
+15. **Turmas (`/turmas`):** programa `turmas`; tabela `turmas`; `codigo` sequencial; `situacao` `ABERTA`/`FECHADA`; no máximo uma turma **aberta** por `cursoCodigo` + `periodo` (**409** com orientação para finalizar a existente); `DELETE` desativa — **409** se houver inscrições ativas; migration `20260611100000`.
+16. **Inscrições (`/inscricoes`):** programa `inscricoes`; tabela `inscricoes_aluno_curso` + `inscricao_renda_familiar`; vínculo via `turmaCodigo` (curso/período vêm da turma); listagem (`mapInscricaoLista`) aceita filtros e retorna `matriculado` e `matriculaCancelada`; `POST`/`PUT`/`GET /:id`/`DELETE` retornam corpo completo mapeado por `mapInscricao`; novas inscrições exigem turma **aberta**; `tomaMedicacao` + `quaisMedicacoes`; `rendaPerCapita` calculada (soma ÷ quantidade de linhas); campo `dtCurso` — rótulo na UI: **Data de inscrição**; matrícula: `matriculado`, `dtInicioCurso`, `usuarioMatriculaId`, `dataHoraMatricula`; cancelamento: `matriculaCancelada`, `usuarioCancelamentoMatriculaId`, `dataHoraCancelamentoMatricula`.
+17. **Matrícula (`/inscricoes/matricula`):** programa `matricula_alunos`; candidatos por `turmaCodigo` (encaminhamento → renda per capita); **exclui** `matriculaCancelada=true`; `POST` com `vagas`, `dtInicioCurso` (UI: **Data da matrícula**) e `inscricaoIds` (somente inscrições novas — já matriculados ignorados); **400** se tentar matricular quem teve matrícula cancelada na turma; app não carrega candidatos ao abrir a tela; **409** se não houver vagas disponíveis; migration `20260611110000`.
+18. **Cancelamento de matrícula (`/inscricoes/cancelamento-matricula`):** programa `cancelamento_matricula_alunos`; lista matriculados ativos por turma; `POST` grava cancelamento com auditoria; aluno cancelado **não** volta à tela de matrícula; migration `20260611130000`.
+19. **Atendimentos (`/inscricao-atendimentos`):** programa `atendimento_alunos`; tabela `inscricao_atendimentos`; **`POST`** exige matrícula ativa; **`GET`/`PUT`/`DELETE`** permitem histórico com matrícula cancelada; pesquisa de alunos inclui matriculados e cancelados; `DELETE` físico do atendimento; desativar inscrição **409** se houver atendimento; migration `20260611120000`.
+20. **Inscrições — listagem no app:** programa `inscricoes`; tela não chama `GET /inscricoes` ao abrir; exige ao menos um filtro (`alunoId`, `cursoCodigo` ou `turmaCodigo`) para habilitar **Buscar**; card exibe ** - MATRICULADO** ou ** - Matricula Cancelada** após o período quando aplicável.
+21. **Relatório — alunos matriculados (PDF):** `matriculados_pdf.dart`; dados de `GET /inscricoes/cancelamento-matricula/matriculados` (inclui CPF); telas **Matricular** e **Cancelar matrícula**; ver [relatorios.md §7](./relatorios.md#7-alunos-matriculados--lista-em-fluxo-implementado).
+22. **Relatório de Alunos da Turma:** programa `relatorio_alunos_turma`; `GET /inscricoes/relatorio-alunos-turma` (+ `/cursos` e `/turmas` para filtros); PDF resumido (retrato) ou detalhado (paisagem) em `relatorio_alunos_turma_pdf.dart`; ver [relatorios.md §8](./relatorios.md#8-relatório-de-alunos-da-turma-implementado).
+23. **Home — ordem dos atalhos:** módulos pela API (`ordem` + nome); programas do módulo selecionado em ordem **alfabética** pelo rótulo no app.
 
 ---

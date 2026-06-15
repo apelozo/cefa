@@ -55,10 +55,46 @@ export const PROGRAMAS_CATALOGO: ProgramaDef[] = [
     moduloCodigo: 1,
   },
   {
-    codigo: "alunos_capacitacao",
-    nome: "Alunos de Capacitação Profissional",
+    codigo: "turmas",
+    nome: "Cadastro de Turmas",
     autoListagem: true,
     moduloCodigo: 1,
+  },
+  {
+    codigo: "alunos",
+    nome: "Cadastro de Alunos",
+    autoListagem: true,
+    moduloCodigo: 1,
+  },
+  {
+    codigo: "inscricoes",
+    nome: "Inscrição em curso",
+    autoListagem: true,
+    moduloCodigo: 1,
+  },
+  {
+    codigo: "matricula_alunos",
+    nome: "Matricular Alunos no Curso",
+    autoListagem: true,
+    moduloCodigo: 1,
+  },
+  {
+    codigo: "cancelamento_matricula_alunos",
+    nome: "Cancelar Matrícula de Alunos no Curso",
+    autoListagem: true,
+    moduloCodigo: 1,
+  },
+  {
+    codigo: "atendimento_alunos",
+    nome: "Atendimento de Alunos",
+    autoListagem: true,
+    moduloCodigo: 1,
+  },
+  {
+    codigo: "relatorio_alunos_turma",
+    nome: "Relatório de Alunos da Turma",
+    autoListagem: true,
+    moduloCodigo: 3,
   },
   {
     codigo: "voluntarios",
@@ -109,6 +145,12 @@ export const PROGRAMAS_CATALOGO: ProgramaDef[] = [
     autoListagem: false,
     moduloCodigo: 2,
   },
+  {
+    codigo: "relatorio_submodulos",
+    nome: "Submódulos de relatórios",
+    autoListagem: true,
+    moduloCodigo: 2,
+  },
 ];
 
 export type AcaoPermissao = "incluir" | "alterar" | "consultar" | "excluir";
@@ -157,24 +199,71 @@ export const PROGRAMA_POR_ROTA: Record<
   "POST /cursos": { programa: "cursos", acao: "incluir" },
   "PUT /cursos/:id": { programa: "cursos", acao: "alterar" },
   "DELETE /cursos/:id": { programa: "cursos", acao: "excluir" },
-  "GET /alunos-capacitacao": {
-    programa: "alunos_capacitacao",
+  "GET /turmas": { programa: "turmas", acao: "consultar" },
+  "GET /turmas/:id": { programa: "turmas", acao: "consultar" },
+  "POST /turmas": { programa: "turmas", acao: "incluir" },
+  "PUT /turmas/:id": { programa: "turmas", acao: "alterar" },
+  "DELETE /turmas/:id": { programa: "turmas", acao: "excluir" },
+  "GET /alunos": { programa: "alunos", acao: "consultar" },
+  "GET /alunos/:id": { programa: "alunos", acao: "consultar" },
+  "POST /alunos": { programa: "alunos", acao: "incluir" },
+  "PUT /alunos/:id": { programa: "alunos", acao: "alterar" },
+  "DELETE /alunos/:id": { programa: "alunos", acao: "excluir" },
+  "GET /inscricoes": { programa: "inscricoes", acao: "consultar" },
+  "GET /inscricoes/:id": { programa: "inscricoes", acao: "consultar" },
+  "POST /inscricoes": { programa: "inscricoes", acao: "incluir" },
+  "PUT /inscricoes/:id": { programa: "inscricoes", acao: "alterar" },
+  "DELETE /inscricoes/:id": { programa: "inscricoes", acao: "excluir" },
+  "GET /inscricoes/matricula/candidatos": {
+    programa: "matricula_alunos",
     acao: "consultar",
   },
-  "GET /alunos-capacitacao/:id": {
-    programa: "alunos_capacitacao",
-    acao: "consultar",
-  },
-  "POST /alunos-capacitacao": {
-    programa: "alunos_capacitacao",
-    acao: "incluir",
-  },
-  "PUT /alunos-capacitacao/:id": {
-    programa: "alunos_capacitacao",
+  "POST /inscricoes/matricula": {
+    programa: "matricula_alunos",
     acao: "alterar",
   },
-  "DELETE /alunos-capacitacao/:id": {
-    programa: "alunos_capacitacao",
+  "GET /inscricoes/cancelamento-matricula/matriculados": {
+    programa: "cancelamento_matricula_alunos",
+    acao: "consultar",
+  },
+  "POST /inscricoes/cancelamento-matricula": {
+    programa: "cancelamento_matricula_alunos",
+    acao: "alterar",
+  },
+  "GET /inscricoes/relatorio-alunos-turma": {
+    programa: "relatorio_alunos_turma",
+    acao: "consultar",
+  },
+  "GET /inscricoes/relatorio-alunos-turma/cursos": {
+    programa: "relatorio_alunos_turma",
+    acao: "consultar",
+  },
+  "GET /inscricoes/relatorio-alunos-turma/turmas": {
+    programa: "relatorio_alunos_turma",
+    acao: "consultar",
+  },
+  "GET /inscricao-atendimentos/alunos-matriculados": {
+    programa: "atendimento_alunos",
+    acao: "consultar",
+  },
+  "GET /inscricao-atendimentos": {
+    programa: "atendimento_alunos",
+    acao: "consultar",
+  },
+  "GET /inscricao-atendimentos/:id": {
+    programa: "atendimento_alunos",
+    acao: "consultar",
+  },
+  "POST /inscricao-atendimentos": {
+    programa: "atendimento_alunos",
+    acao: "incluir",
+  },
+  "PUT /inscricao-atendimentos/:id": {
+    programa: "atendimento_alunos",
+    acao: "alterar",
+  },
+  "DELETE /inscricao-atendimentos/:id": {
+    programa: "atendimento_alunos",
     acao: "excluir",
   },
   "GET /voluntarios": { programa: "voluntarios", acao: "consultar" },
@@ -279,6 +368,26 @@ export const PROGRAMA_POR_ROTA: Record<
   "PUT /modulos-sistema/:id/programas": {
     programa: "modulos_sistema",
     acao: "alterar",
+  },
+  "GET /relatorio-submodulos": {
+    programa: "relatorio_submodulos",
+    acao: "consultar",
+  },
+  "GET /relatorio-submodulos/:id": {
+    programa: "relatorio_submodulos",
+    acao: "consultar",
+  },
+  "POST /relatorio-submodulos": {
+    programa: "relatorio_submodulos",
+    acao: "incluir",
+  },
+  "PUT /relatorio-submodulos/:id": {
+    programa: "relatorio_submodulos",
+    acao: "alterar",
+  },
+  "DELETE /relatorio-submodulos/:id": {
+    programa: "relatorio_submodulos",
+    acao: "excluir",
   },
 };
 

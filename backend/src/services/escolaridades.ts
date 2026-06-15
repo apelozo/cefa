@@ -5,6 +5,7 @@ import {
   auditSoftDelete,
   mapAuditoria,
   mapSoftDeleteAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
 import { prisma } from "../lib/prisma.js";
 import type {
@@ -165,13 +166,13 @@ export function mapEscolaridade(e: {
   dataHoraAlteracao: Date | null;
   usuarioExclusaoId: string | null;
   dataHoraExclusao: Date | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: e.id,
     codigo: e.codigo,
     descricao: e.descricao,
     ativo: e.ativo,
-    ...mapAuditoria(e),
-    ...mapSoftDeleteAuditoria(e),
+    ...mapAuditoria(e, usuarios),
+    ...mapSoftDeleteAuditoria(e, usuarios),
   };
 }

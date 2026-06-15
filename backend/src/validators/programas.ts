@@ -14,12 +14,14 @@ export const createProgramaSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(120),
   autoListagem: z.boolean().optional().default(false),
   moduloSistemaId: z.string().uuid().nullable().optional(),
+  relatorioSubmoduloId: z.string().uuid().nullable().optional(),
 });
 
 export const updateProgramaSchema = z.object({
   nome: z.string().min(1).max(120).optional(),
   autoListagem: z.boolean().optional(),
   moduloSistemaId: z.string().uuid().nullable().optional(),
+  relatorioSubmoduloId: z.string().uuid().nullable().optional(),
 });
 
 export type CreateProgramaInput = z.infer<typeof createProgramaSchema>;

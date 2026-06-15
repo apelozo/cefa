@@ -1,6 +1,11 @@
 import { PerfilTipoUsuario } from "@prisma/client";
 import { listProgramasParaPermissoes } from "./programas.js";
-import { auditAlteracao, auditInclusao, mapAuditoria } from "../lib/auditoria.js";
+import {
+  auditAlteracao,
+  auditInclusao,
+  mapAuditoria,
+  type UsuarioAuditoriaMap,
+} from "../lib/auditoria.js";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { hashSenha } from "../lib/password.js";
 import { prisma } from "../lib/prisma.js";
@@ -205,7 +210,7 @@ export function mapUsuario(u: {
     perfil: PerfilTipoUsuario;
     ativo: boolean;
   };
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: u.id,
     nomeUsuario: u.nomeUsuario,
@@ -219,6 +224,6 @@ export function mapUsuario(u: {
       ativo: u.tipoUsuario.ativo,
     },
     ativo: u.ativo,
-    ...mapAuditoria(u),
+    ...mapAuditoria(u, usuarios),
   };
 }

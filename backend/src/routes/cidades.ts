@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { isUfBrasil } from "../lib/uf-brasil.js";
@@ -39,7 +40,7 @@ export const cidadesRoutes: FastifyPluginAsync = async (app) => {
       nome: query.nome,
       estado,
     });
-    return reply.send(items.map(mapCidade));
+    return replyMappedList(reply, items, mapCidade);
   });
 
   app.get("/cidades/:id", async (request, reply) => {
@@ -48,14 +49,14 @@ export const cidadesRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Cidade não encontrada" });
     }
-    return reply.send(mapCidade(item));
+    return replyMapped(reply, item, mapCidade);
   });
 
   app.post("/cidades", async (request, reply) => {
     try {
       const body = createCidadeSchema.parse(request.body);
       const item = await createCidade(body, request.usuarioId!);
-      return reply.status(201).send(mapCidade(item));
+      return replyMapped(reply, item, mapCidade, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -83,7 +84,7 @@ export const cidadesRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Cidade não encontrada" });
       }
-      return reply.send(mapCidade(item));
+      return replyMapped(reply, item, mapCidade);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -107,6 +108,6 @@ export const cidadesRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Cidade não encontrada" });
     }
-    return reply.send(mapCidade(item));
+    return replyMapped(reply, item, mapCidade);
   });
 };

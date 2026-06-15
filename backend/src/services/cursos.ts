@@ -3,7 +3,9 @@ import {
   auditAlteracao,
   auditInclusao,
   mapAuditoria,
+  type UsuarioAuditoriaMap,
 } from "../lib/auditoria.js";
+import { DeleteBlockedError } from "../lib/delete-guard.js";
 import { prisma } from "../lib/prisma.js";
 import type { CreateCursoInput, UpdateCursoInput } from "../validators/cursos.js";
 
@@ -113,6 +115,15 @@ export async function desativarCurso(id: string, usuarioId: string) {
   if (!existing) return null;
   if (!existing.ativo) return existing;
 
+  const turmas = await prisma.turma.count({
+    where: { cursoCodigo: existing.codigo, ativo: true },
+  });
+  if (turmas > 0) {
+    throw new DeleteBlockedError(
+      "Não é possível desativar: existem turmas ativas vinculadas a este curso",
+    );
+  }
+
   return prisma.curso.update({
     where: { id },
     data: {
@@ -152,12 +163,12 @@ export function mapCurso(c: {
   dataHoraInclusao: Date;
   usuarioAlteracaoId: string | null;
   dataHoraAlteracao: Date | null;
-}) {
+}, usuarios?: UsuarioAuditoriaMap) {
   return {
     id: c.id,
     codigo: c.codigo,
     descricao: c.descricao,
     ativo: c.ativo,
-    ...mapAuditoria(c),
+    ...mapAuditoria(c, usuarios),
   };
 }

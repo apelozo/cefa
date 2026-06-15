@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import {
   VoluntarioDepartamentoHorarioReferenciaError,
@@ -20,7 +21,7 @@ export const voluntarioDepartamentoHorariosRoutes: FastifyPluginAsync = async (
   app.get("/voluntarios/:voluntarioId/departamento-horarios", async (request, reply) => {
     const { voluntarioId } = request.params as { voluntarioId: string };
     const items = await listHorariosPorVoluntario(voluntarioId);
-    return reply.send(items.map(mapVoluntarioDepartamentoHorario));
+    return replyMappedList(reply, items, mapVoluntarioDepartamentoHorario);
   });
 
   app.post("/voluntarios/:voluntarioId/departamento-horarios", async (request, reply) => {
@@ -28,7 +29,7 @@ export const voluntarioDepartamentoHorariosRoutes: FastifyPluginAsync = async (
     try {
       const body = createVoluntarioDepartamentoHorarioSchema.parse(request.body);
       const item = await createHorario(voluntarioId, body, request.usuarioId!);
-      return reply.status(201).send(mapVoluntarioDepartamentoHorario(item));
+      return replyMapped(reply, item, mapVoluntarioDepartamentoHorario, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -49,7 +50,7 @@ export const voluntarioDepartamentoHorariosRoutes: FastifyPluginAsync = async (
     if (!item) {
       return reply.status(404).send({ error: "Vínculo não encontrado" });
     }
-    return reply.send(mapVoluntarioDepartamentoHorario(item));
+    return replyMapped(reply, item, mapVoluntarioDepartamentoHorario);
   });
 
   app.put("/voluntario-departamento-horarios/:id", async (request, reply) => {
@@ -60,7 +61,7 @@ export const voluntarioDepartamentoHorariosRoutes: FastifyPluginAsync = async (
       if (!item) {
         return reply.status(404).send({ error: "Vínculo não encontrado" });
       }
-      return reply.send(mapVoluntarioDepartamentoHorario(item));
+      return replyMapped(reply, item, mapVoluntarioDepartamentoHorario);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -84,6 +85,6 @@ export const voluntarioDepartamentoHorariosRoutes: FastifyPluginAsync = async (
     if (!item) {
       return reply.status(404).send({ error: "Vínculo não encontrado" });
     }
-    return reply.send(mapVoluntarioDepartamentoHorario(item));
+    return replyMapped(reply, item, mapVoluntarioDepartamentoHorario);
   });
 };

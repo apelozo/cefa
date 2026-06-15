@@ -13,6 +13,7 @@ import '../../utils/pergunta_ordem.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_screen_chrome.dart';
+import '../../widgets/auditoria_section.dart';
 import 'pergunta_opcoes_editor.dart';
 
 class PerguntaFormScreen extends ConsumerStatefulWidget {
@@ -496,6 +497,11 @@ class _PerguntaFormScreenState extends ConsumerState<PerguntaFormScreen> {
               value: _ativo,
               onChanged: (v) => setState(() => _ativo = v),
             ),
+            if (widget.isEditing && widget.pergunta != null)
+              AuditoriaSection(
+                auditoria: widget.pergunta!.auditoria,
+                mostrarExclusao: !widget.pergunta!.ativo,
+              ),
             const SizedBox(height: 32),
             AppButton(
               label: widget.isEditing ? 'Salvar' : 'Criar',

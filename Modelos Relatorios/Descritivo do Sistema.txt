@@ -1,0 +1,339 @@
+
+Leia a documentação em D:\Projetos\Cursor\Cefa com enfase no cadastro  para darmos sequencia ao projeto.
+
+
+Vamos iniciar o desenvolvimento de uma nova aplicação.
+
+Vamos chamar essa aplicação de Sis Cefa. - Sistema Centro Espirita Francisco de Assis
+
+Inicialmente vamos criar um cadastro de pessoas.
+Trabalhe sempre com todos os nomes de tabelas bem como seus campos em portugues.
+Todas as datas devem ser no formato dd/mm/aaaa. Se possivel, permitir preenchimento apenas dos 2 ultimos digitos do ano e voce complementa.
+Todas as tabelas devem constar usuario de inclusão / alteração, data de inclusão / alteração e hora de inclusão / alteração.
+
+Vamos utilizar um banco de dados Postgresql.
+
+Vamos desenvolver uma aplicação mobile first usando flutter.
+
+
+
+O cadastro de pessoas vai ter os seguintes campos:
+Codigo da Pessoa (deve ser preenchido automaticamente, numero sequencial)
+Nome
+dt_nascimento
+endereco_residencial
+nro_end_residencial
+bairro_end_residencial
+cidade_end_residencial
+
+
+Eu preciso criar um cadastro de perguntas.
+
+
+
+Vamos fazer um cadastro de Pessoas, com nome, dt_nascimento, cpf, rg. 
+Após isso, vamos criar uma tela de lançamento, onde a pessoa deve selecionar o tipo de formulario que ela vai responder. 
+Após selecionar isso, deve ter uma tela onde ela informa a pessoa a que se refere aquelas respostas, e deve ser montado a tela de lançamento das respostas.
+
+
+
+
+postgresql://neondb_owner:npg_jy5LqxXOf4hR@ep-ancient-mud-aqwyhmvu-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+Precisamos criar um cadastro de Usuarios.
+Toda tela, deve ter as seguintes funcionalidades: Permite Incluir, Permite Alterar, Permite Consultar, Permite Excluir.
+Sempre ao acessar cada tela, apenas os botões que o usuario tenha acesso podem estar disponiveis.
+
+Deve existir um Cadastro de tipo de usuario com os campos: descricao, e um flag de "Usuario Administrador" ou "Usuario do Sistema".
+
+O cadastro de usuario deve ter nome de usuario, nome do usuario, email do usuario, tipo de usuario, ativo.
+O usuario admin, que será criado, deve ter permissao total em todo o sistema.
+Criar telas: Cadastro de Usuarios, e tela de liberação de acesso de usuario.
+Criar tela de liberação de acesso por tipo de usuario.
+
+Todas as telas de listagens, devem ser cadastradas como "Programas a liberar" de forma automatica.
+
+
+
+Precisamos criar um conceito de módulos de sistema.
+Hoje, vi que voce criou um módulo Administração, vamos criar, um cadastro de Módulos do Sistema.
+E depois, criar um relacionamento entre módulo do sistema e programas. Dessa forma, a tela inicial do sistema, deve trazer um filtro de módulos, através  de uma lista. Conforme o módulo selecionado o sistema traz o que o usuario tem acesso.
+
+
+
+
+
+Cadastro do assistido
+usar ficha de cadastro como base
+cadastro de bairros 
+cadastro de cidades
+
+Assistente Social
+
+
+Medicamentos que o assistido toma, as areas devem ter visibilidade
+Psicologico
+Médico
+Dentario
+Farmaceutico
+
+
+Coordenadores(grupo de usuario)
+
+
+Precisamos criar um cadastro de cidades.
+Este Cadastro deve ter nome do municipio, estado (deve ser uma lista, com essas opções para seleção AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO)
+Além dos usuarios de inclusao, data e hora de inclusao, usuario de alteração e data e hora de alteração. Este cadastro nao deve ter possibilidade de exclusão, apenas soft delete.
+
+
+Precisamos criar um cadastro de bairros.
+Este Cadastro deve ter código do bairro e o nome do bairro, Além dos usuarios de inclusao, data e hora de inclusao, usuario de alteração e data e hora de alteração. Este cadastro nao deve ter possibilidade de exclusão, apenas soft delete.
+
+
+Precisamos melhorar o cadastro de Pessoas.
+Vamos ter que implementar varios campos.
+precisamos criar os campos nome Social, Nome da Mãe, Nome do Pai, NIS, Orgao de Emissao do RG, endereco, endereco_numero, codigo do bairro, codigo do municipio, endereco_complemento, telefone, telefone_2, Urbano_Rural.
+
+Precisamos criar um programa de lançamento de "Entrevista com o Assistido".
+Essa tela, deve ser possivel selecionar a pessoa, ter um campo de Data da Entrevista, trazendo carregado a data atual, mas, permitindo ao usuario digitar a data.
+Depois devemos ter algumas abas sendo elas:
+
+Nome da Aba: Assistencia
+Texto Fixo dentro da aba: "De que forma a familia (ou membro da familia) acessou a instituição para o primeiro atendimento ?
+Opções - ideal que fosse um objeto do tipo checkbox, permitindo a seleção de mais de um:
+Por Demanda Espontanea
+Busca Ativa Realizada
+Encaminhamento da Assistencia Social
+Encaminhamento da Saude
+Encaminhamento da Educação
+Encaminhamento do Conselho Tutelar
+Encaminhamento Sistema de Garantia de Direitos
+Outros, com uma caixa de texto para digitação
+
+
+
+
+Na tela de entrevista com o assistido, implemente essas novas abas:
+Implemente a segunda aba com "Composição Familiar", essa aba deve ter os campos:
+Nome Completo, cpf, dt nascimento e Parentesco.
+Deve existir um botão "Adicionar", pois podem existir varios integrantes da familia, e a cada clique no botao Adicionar, crie uma nova linha para preenchimento.
+
+Em uma outra aba, com o nome "Condições de Trabalho e Rendimento da Familia",  essa aba deve ter os campos:
+Nome (Se for possivel, todas as pessoas incluidas na aba Composição Familiar, devem constar aqui), Ocupação (Deve ser uma lista com as opções "0 - Não Trabalha", "1 - Trabalhador por conta própria (bico, autonomo)", "2 - Trabalhador Temporario em área rural", "3 - Empregado sem carteira de trabalho assinada", "4 - Empregado com carteira de trabalho assinada", "5 - Trabalhador doméstico sem carteira e trabalho assinada", "6 - Trabalhador doméstico com carteira de trabalho assinada", "7 - Trabalhador não remunerado", "8 - Militar ou Servidor Publico", "9 - Empregador", "10 - Estagiario", "11 - Aprendiz"
+condições de trabalho, Vr Beneficio Social, Renda Mensal
+Ao final da aba, deve ter um campo com a descrição "Renda Total da Familia: R$ " e somar todos os valores de beneficios sociais + renda mensal informados.
+Na linha seguinte, deve ter um outro campo com descricao "Renda Per Capita: R$ " Esse campo deve ser a soma dos valores dividido pela quantidade de pessoas que foi informada.
+
+
+
+
+no cadastro de pessoas, temos que fazer algumas mudanças:
+O Enter, nao esta indo de forma alinhada, por exemplo, o nome social esta sendo pulado.... verifique o fluxo.
+Bairro e cidade, podem ser listas, mas, precisam ter opção de pesquisa, pois podem existir muitos registros e ficar dificil a seleção. Outra questão, é que dentro da lista, deve vir ordenado por ordem alfabetica, tanto bairro, quanto cidade.
+
+A nova aba na tela de Entrevista com o Assistido se chama:
+"Condições Educacionais da Familia",
+Igual o nome digitado na composicao familiar foi replicado para a aba de rendimentos, deve ser replicado para essa nova aba.
+Além do nome, incluir campos "Idade", "Escolaridade" - que deve ser uma lista e as opções são "Nunca Frenquentou Escola", "Creche", "Educação Infantil", "1º Ano Ens. Fund.", "2º Ano Ens. Fund.", "3º Ano Ens. Fund.", "4º Ano Ens. Fund.", "5º Ano Ens. Fund.", "6º Ano Ens. Fund.", "7º Ano Ens. Fund.", "8º Ano Ens. Fund.", "9º Ano Ens. Fund.", "1º Ano Ens. Médio", "2º Ano Ens. Médio", "3º Ano Ens. Médio", "Superior Incompleto", "Superior Completo", "EJA" - Ens. Fundamental", "EJA - Ens. Médio", "Outros".
+uma tag com descricao "Sabe Ler e Escrever" e outra tag "Frequenta a Escola".
+
+Crie uma nova aba na tela de Entrevista com o Assistido, chamada "Condições de Saúde da Familia"
+
+Crie um campo para digitar o nome com uma descricao "Caso haja presença de pessoa com deficiência na familia, preencha o quadro abaixo"
+após o campo de nome, vem um campo Tipos_Deficiencia, que deve ser do tipo lista com as opções: "Cegueira", "Baixa Visão", "Surdez leve/moderada", "Deficiencia Fisica", "Deficiencia Mental ou Intelectual", "Sindrome de Down", "Transtorno Mental".
+depois um checkbox com o texto "Necessita de Cuidados Constantes", e um outro campo texto com a descricao "Quem é o cuidador ?"
+Deve permitir adicionar um novo registro, e após o ultimo registro, crie os seguintes campos:
+
+Texto: "Algum membro da familia faz uso de remédios controlados para transtornos mentais ? " tipo lista com "Sim" e "Não", e se for selecionado "Sim", deve abrir um outro campo de texto "Quais"
+Texto: "Algum membro da familia faz uso abusivo de álcool ? tipo lista "Sim" e "Não"
+Texto: Algum membro da familia faz uso abusivo de drogas ? tipo lista com "Sim" e "Não", e se for selecionado "Sim", deve abrir um outro campo de texto "Quais"
+Texto: "Tem gestante na familia ?" tipo lista com "Sim" e "Não", e se for selecionado "Sim", deve abrir um outro campo de texto "Nome", "Meses de Gestação", "Iniciou Pré Natal" tipo lista "Sim" e "Não"
+
+
+Precisamos criar uma nova aba na tela de lançamento de entrevista com o assistido
+A aba deve se chamar "Programas Sociais", e deve ser a segunda aba do card.
+mova as abas existentes, com excessão da primeira, mantendo a ordem que elas estão.
+Esses campos, podem estar na mesma tabela dos campos da aba1.
+Deve haver um descritivo da seguinte forma: "Beneficiário(a) de algum dos seguintes Programas Sociais:"
+Os campos são: Todos no estilo checkbox. igual na aba1.
+Bolsa Familia, PETI, BPC, Outros Programas, sendo que esse ultimo, caso selecionado, deve abrir um outro campo de nome Outros_programas_sociais para receber um texto de no maximo 30 caracteres.
+
+Esses campos, podem ficar em tela da seguinte forma:
+Bolsa Familia no lado esquerdo e na direita, em uma outra coluna BPC.
+Na linha abaixo: PETI, abaixo de Bolsa Familia, e alinhado com BPC, a opção Outros Programas
+
+Após esses campos, deve existir um outro texto:
+"A Familia é atendida por algum órgão ?
+E depois, os campos:
+CRAS, CENTRO POP, CONSELHO TUTELAR, UBS, CREAS, CAPS, CRAF, Outros_atendimento_familia
+esses campos, devem estar tambem na mesma tabela de programas sociais, e devem tes os seguintes textos respectivamente:
+CRAS, CENTRO POP, CONSELHO TUTELAR, UBS, CREAS, CAPS, CRAF (Secretaria da Mulher), Outros_Orgaos, sendo que caso esse ultimo seja selecionado, deve abrir um campo de nome Outros_orgaos_sociais para receber um texto de no maximo 30 caracteres.
+
+Além disso, o posicionamento deles na tela, deve ser:
+
+Na primeira linha: CRAS, alinhado a esquerda com o campo PETI, e CREAS a direita, alinhado com BPC.
+Segunda Linha:     CENTRO POP alinhado ao CRAS, CAPS alinhado ao BPC
+Terceira Linha:    CONSELHO TUTELAR alinhado ao CRAS,   CRAF (Secretaria da Mulher) alinhado ao BPC
+Quarta Linha:      UBS alinhado ao CRAS,  Outros alinhado ao BPC, e caso selecionado abre o campo texto respectivo.
+
+
+
+
+
+Leia a documentação em D:\Projetos\Cursor\Cefa com enfase no lançamento de respostas a perguntas para darmos sequencia ao projeto.
+
+
+
+
+
+
+
+
+
+Na entrevista do assistido, na aba condições de trabalho e rendimento da familia, temos o campo Ocupação. Atualmente esse campo tem varias opções, vamos substituir as opções por: 
+
+"Não Trabalha", "Desempregado", "Trabalhador Autonomo", "Empregado C/ Carteira Assinada", "Empregado S/ Carteira Assinada"
+
+
+
+Vamos criar um "Cadastro de Departamentos"com código sequencial, descricao, ativo, usuario inclusao, data/hora inclusão, usuario alteração, data/hora alteração
+
+
+Vamos criar um "Cadastro de Voluntarios", com os campos: código, empresa, Funcao, 
+    Estado Civil sendo que esse campo deve ser um listbox com as opções "Casado(a)", "Divorciado(a)", "Separado"(a)", "Solteiro(a)", "Viúvo(a)", Dt Nascimento, Endereco, Numero, Bairro, Cep, 
+	Código da Cidade (Relacionar com o cadastro de cidades), complemento, RG, CPF, CNH, Celular, Telefone Residencial, Telefone Comercial, Email,
+	valor_contribuicao, dia_vencimento com descricao "Qual o melhor dia de Vencimento ?, tempo_trabalho_centro com a descricao "Quantos Anos trabalha no Centro ?", Nome_Cracha,
+	Ficha_Medica (Campo Texto com 1000 Caracteres), usuario inclusao, data/hora inclusão, usuario alteração, data/hora alteração
+	
+
+Criar uma outra tabela, relacionando com o Cadastro de Departamento, deve permitir que eu tenha a mesma pessoa, para o mesmo departamento mais de uma vez.
+Nessa tabela de relacionamento, deve conter, Dia_da_Semana (Deve ser um listbox com os dias da semana), HoraInicio, HoraTermino,usuario inclusao, data/hora inclusão, usuario alteração, data/hora alteração.
+
+
+Vamos criar um cadastro de cursos, com codigo que deve ser gerado automaticmente, descricao, ativo,  usuario inclusao, data/hora inclusão, usuario alteração, data/hora alteração
+
+Agora, vamos criar um cadastro de Alunos de Capacitação Profissional.
+Este cadastro deve conter esses campos: Nome, Nome Social, Estado Civil sendo que esse campo deve ser um listbox com as opções "Casado(a)", 
+"Divorciado(a)", "Separado"(a)", "Solteiro(a)", "Viúvo(a)", RG, Orgao Expedidor, CPF, Data de Nascimento, Idade (Deve ser calculada após digitar 
+a data de nascimento, Nacionalidade, Naturalidade (chave estrangeira do Cadastro de Cidades), Nome da Mae, Nome do Pai, Código da Escolaridade, 
+Nome da Ultima Escola. 
+
+
+
+Leia a documentação em D:\Projetos\Cursor\Cefa com enfase na inscricao/matricula de alunos em cursos para darmos sequencia ao projeto.
+
+
+
+Vamos criar um processo de inscrição de aluno em um curso.
+Chave Primeira: Código da Inscricao (sequencial gerado automaticamente)
+O primeiro ponto, é selecionar o aluno, permitir pesquisar o alunos por nome e cpf.
+após isso, selecionar o curso, permitindo pesquisar pelo nome do curso.
+
+Criar uma aba com o descritivo "Informações Gerais"
+Depois disso criar os seguintes campos:
+Data do curso, periodo (Campo do tipo lista com as opções "Manhã", "Tarde", "Noite"), um campo do tipo checkbox com o 
+descritivo "Ja Fez Cursos no SENAC/SENAI", e caso seja marcado como verdadeiro, abrir um campo para digitar o nome do curso que ja foi feito (Campo Texto Livre)
+Após isso, um outro campo "Possui Encaminhamento", caso verdadeiro, abrir um outro campo texto para informar o Órgão que encaminhou o aluno, 
+Telefone_Encaminhamento.
+
+Em seguida os campos  Possui_Necessidade_Especial do tipo Checkbox com label "Possui Alguma Necessidade Especial", e caso 
+verdadeiro, habilitar um novo campo Qual_Necessidade do tipo texto. Outro Campo Faz_Acompanhamento_Medico, do tipo Checkbox com label "Faz Algum Acompanhamento Médico", e caso verdadeiro, habilitar
+um novo campo Toma_Medicação, do tipo texto, outro campo Vacinacao, Alergias.
+
+Criar uma segunda aba com descritivo "Renda Familiar", aqui precisa ser uma tabela relacional, que permite informar varias pessoas (Sem relação com Cadastro de Pessoas/Assistidos), com os campos
+nome, idade, renda, parentesco, profissao.
+Na parte inferior dessa aba, ter 1 campo calculando "Renda Per Capita R$ "
+
+
+
+
+
+
+
+
+
+
+
+Uma outra Aba de nome "Informações Adicionais", com um campo JaFezCurso do tipo Checkbox e com texto "Ja Fez Cursos no Senac ou Senai", caso verdadeiro, habilitar um campo texto para digitar o 
+Curso (Sem relação com a tabela Cursos)  e o ano que foi feito, Encaminhamento, , usuario inclusao, data/hora inclusão, usuario alteração, data/hora alteração
+Em uma proxima aba de nome "Informações Sobre a Renda Familiar", aqui precisa ser uma tabela relacional, que permite informar varias pessoas (Sem relação com Cadastro de Pessoas/Assistidos), com os campos
+nome, idade, renda, parentesco, profissao.
+Na parte inferior dessa aba, ter 1 campo calculando "Renda Per Capita R$ "
+
+
+
+Vamos criar agora uma tabela de relacionamento entre o cadastro de cursos e o cadastro de alunos de capacitação profissional.
+
+Esse cadastro, será o procedimento de Matricula do aluno em um curso. Ela deve conter o codigo do aluno, codigo do curso, data de matricula, data de inicio do curso, 
+Periodo (Que deve ser um objeto do tipo listbox com opções "Manhã" / "Tarde" / "Noturno"), 
+
+
+
+
+
+
+
+
+************** CRIAR MATRICULA **************
+
+Precisamos criar agora, um processo de matricula das inscricoes que foram feitas. Pensei em fazer da seguinte forma, em uma tela o usuario informa em 
+um primeiro campo quantas vagas existem, e depois seleciona a turma/curso, informa a data de inicio do curso. O sistema carrega todas as inscricoes 
+que foram feitas para aquele curso/turma com a seguinte ordem de ordenação: Primeiro, todas as inscricoes que possuiram encaminhamento, e depois, 
+da menor renda per capita, para a maior.
+Para cada inscricao carregada, colocar um campo do tipo Checkbox com o texto "Matricular" no inicio.
+Caso ja possuam alunos matriculados na seleção feita, verificar se a quantidade de vagas é igual a quantidade de alunos matriculados, e só permitir
+alteração caso a quantidade de alunos matriculados seja menor ou igual a quantidade de vagas.
+
+As informações carregadas devem ser na seguinte ordem, e todas em uma mesma linha:
+o campo "Matricular", nome do aluno, idade, escolaridade, orgao que encaminhou.
+Os registros que forem sendo preenchidos, devem vir com o campo "Matricular" como verdadeiro, até completar o numero de vagas. O usuario pode desmarcar
+e marcar novas inscricoes.
+Colocar um contador, conforme for sendo marcado o campo "Matricular" para que o usuario possa se basear em quantos registros selecionou.
+Não permitir matricular caso o numero de candidatos selecionados seja maior que o numero de vagas .
+O botão de gravar, deve gravar os alunos selecionados como matriculados (criar Campo nao existente ainda na tabela de inscricoes)
+Esse processo, deve ter uma chamada no menu de "Matricular Alunos no Curso"
+Criar campos de usuario_matricula, data/hora matricula e tratar esses campos como sendo de auditoria nesse processo tambem.
+
+
+************** CANCELAR MATRICULA **************
+Precisamos criar agora um processo de cancelamento da matricula. Criar uma tela onde a pessoa selecione a turma/curso. 
+O sistema carrega todas os alunos ja matriculados. 
+Para cada aluno matriculado carregado, colocar um campo do tipo Checkbox com o texto "Cancelar" no inicio.
+As informações carregadas devem ser na seguinte ordem, e todas em uma mesma linha:
+o campo "Cancelar", nome do aluno, data da matricula, idade, escolaridade, orgao que encaminhou.
+O botão de gravar, deve gravar os alunos selecionados como cancelados (criar Campo nao existente ainda na tabela de inscricoes)
+Esse processo, deve ter uma chamada no menu de "Cancelar Matricula de Alunos no Curso"
+Criar campos de usuario_canc_matricula, data/hora Canc. Matricula e gravar os campos correspondentes como sendo de auditoria.
+
+
+
+
+********************* ATENDIMENTO DE ALUNOS ********************
+Precisamos criar agora um "Atendimento" para alunos matriculados em cursos.
+
+Criar uma tela onde a pessoa selecione a turma/curso, além do aluno matriculado (Criar uma pesquisa de alunos)
+Após isso, caso os dados sejam validos (Aluno realmente matriculado naquele curso/turma),liste os atendimento do aluno. 
+Deve aparecer em um frame apenas a data de atendimento, e um corte inicial de 50 caracteres do texto do atendimento, tudo na mesma linha. 
+
+Caso a pessoa queira incluir um novo atendimento para aquele aluno deve aparecer um campo Data do Atendimento
+se possivel, vir preenchida com a data do dia, e um campo texto com 2000 caracteres para descricao do atendimento pelo usuario.
+Criar uma tabela relacional com a tabela de inscricoes para armazenar essas informações, alem dos dados de auditoria.
+Permitir alterar e apagar os atendimento ja realizados, o delete deve ser fisico.
+
+
+
+
+
+
+
+
+Vamos criar o escopo de prontuario médico.
+
+Primeiramente, vamos ter um cadastro de pacientes (Nome, Endereco Completo, CPF, RG, Cidade (Buscar no cadastro de Cidades, Bairro (Buscar no cadastro de Bairros).
+Vamos ter um cadastro de Profissionais de Atendimento (Médicos, Psicólogos, Dentistas).
+
+Após isso, vamos gerar uma tela de atendimento, com as informações iniciais do atendimento. 
+
+Leo2001@
+
+

@@ -6,6 +6,28 @@ Na UI, o cadastro vinculado a submissões e entrevistas é **Assistido**; no PDF
 
 ---
 
+## 0. Menu do módulo Relatórios e submódulos
+
+Os atalhos de relatório na **Home** ficam no módulo **Relatórios** (`modulos_sistema.codigo = 3`), agrupados por **submódulo** cadastrado em `relatorio_submodulos`.
+
+| Conceito | Descrição |
+|----------|-----------|
+| **Módulo Relatórios** | Chip na Home; contém programas de consulta/PDF (ex.: `relatorio_alunos_turma`) |
+| **Submódulo** | Agrupamento dentro do módulo (ex.: **IEFA**, `codigo` `iefa`) — entidade distinta de um eventual módulo operacional com o mesmo nome |
+| **Catálogo** | `GET /relatorio-submodulos` ou tela **Submódulos de relatórios** (Administração) |
+| **Vínculo** | Cada programa no módulo Relatórios tem `relatorioSubmoduloId` obrigatório (`POST`/`PUT` `/programas`) |
+| **Home** | Chips **Todos** + submódulos; atalhos filtrados e ordenados alfabeticamente |
+
+**Checklist — novo relatório com PDF:**
+
+1. Consultar submódulos existentes (`GET /relatorio-submodulos`); criar submódulo se necessário.
+2. Implementar tela/API/PDF no código; registrar programa em `PROGRAMAS_CATALOGO` (módulo `3`) ou `POST /programas` com módulo Relatórios + submódulo.
+3. Entrada em `HomeMenuRegistry`; liberar programa; documentar em [relatorios.md](./relatorios.md) e [api.md](./api.md).
+
+Modelo: [modelo-dados.md § Submódulo](./modelo-dados.md#submódulo-de-relatório-relatorio_submodulos). App: [mobile.md § Submódulos](./mobile.md#submódulos-de-relatórios).
+
+---
+
 ## 1. Contexto
 
 | Conceito | Descrição |
@@ -27,7 +49,7 @@ O desafio: o cadastro de perguntas é flexível, mas alguns relatórios precisam
 | Item | Detalhe |
 |------|---------|
 | **Código** | `mobile/lib/utils/submissao_pdf.dart`, `submissao_pdf_delivery*.dart` |
-| **Fontes** | `mobile/lib/utils/pdf_fonts.dart` — Open Sans (Unicode; ver §11) |
+| **Fontes** | `mobile/lib/utils/pdf_fonts.dart` — Open Sans (Unicode; ver §12) |
 | **Tela** | Consulta de respostas → detalhe → ícone PDF no AppBar |
 | **Layout** | `MultiPage` (`maxPages: 200`) com widgets **planos** (sem `Column` por resposta); `TextOverflow.span` em textos longos; demais tipos em **1 linha**; ~1 linha em branco entre perguntas; cabeçalho sem logo |
 | **Numeração** | `Pág. N` no **canto superior direito** — `header` do `MultiPage` (`pdf_page_number.dart`) |
@@ -128,7 +150,7 @@ O gerador, para cada chave, localiza `respostas.where((r) => r.perguntaId == cha
 | Posição na folha | Flui (quebra de página) | Fixa por mapa |
 | Manutenção | Baixa | Média/alta (design + coordenadas) |
 | Aparência institucional | Padronizada em código | Igual ao PDF/Word aprovado |
-| Implementação atual | **Sim** (submissões) | **Sim** (entrevista); submissões: planejado |
+| Implementação atual | **Sim** (submissões, alunos matriculados — §7, relatório de alunos da turma — §8) | **Sim** (entrevista); submissões fixas: planejado |
 
 ---
 
@@ -161,7 +183,7 @@ O gerador, para cada chave, localiza `respostas.where((r) => r.perguntaId == cha
 | **Dados** | Antes de gerar, **recarrega** `GET /entrevistas-assistido/:id` e mescla `programasSociais` da tela; objeto `pessoa` com assistido **completo** (mesmo formato de `GET /pessoas/:id`) + filhos da entrevista |
 | **Entrega** | Reutiliza `submissao_pdf_delivery*.dart` |
 | **Numeração** | `Pág. N` no canto superior direito (`PdfPageNumber.overlaySuperiorDireito` no `Stack` de cada página) |
-| **Fontes** | Open Sans via `PdfFonts.ensureInitialized()` (§11) |
+| **Fontes** | Open Sans via `PdfFonts.ensureInitialized()` (§12) |
 
 ### 6.1 Estrutura do YAML
 
@@ -245,19 +267,82 @@ Renda per capita no PDF segue a mesma regra da tela: total ÷ integrantes da com
 
 ---
 
-## 7. Outros relatórios (assistido)
+## 7. Alunos matriculados — lista em fluxo (implementado)
+
+**Uso:** relatório tabular dos alunos **matriculados ativos** (`matriculado=true`, `matriculaCancelada=false`) em uma **turma** (curso + período).
+
+| Item | Detalhe |
+|------|---------|
+| **Gerador** | `mobile/lib/utils/matriculados_pdf.dart` |
+| **Dados** | `GET /inscricoes/cancelamento-matricula/matriculados?turmaCodigo=` (mesma resposta da tela de cancelamento) |
+| **Telas** | **Matricular Alunos no Curso** e **Cancelar Matrícula** — ícone PDF no AppBar após carregar a lista e com `totalMatriculados > 0` |
+| **Entrega** | `submissao_pdf_delivery*.dart` (visualizar / baixar / compartilhar) |
+| **Layout** | Cabeçalho (curso, turma, período, total) + tabela (Nº sequencial, nome, idade, data da matrícula, CPF, escolaridade); ordenação alfabética por nome; rodapé: *Documento gerado por {nome do usuário logado} em dd/mm/aaaa às HH:mm* |
+| **Numeração** | `Pág. N` no canto superior direito (`pdf_page_number.dart`) |
+
+Na tela de **matrícula**, o PDF recarrega os matriculados pela API (não usa só os candidatos da lista) para incluir **data da matrícula**.
+
+---
+
+## 8. Relatório de Alunos da Turma (implementado)
+
+**Uso:** relatório parametrizado por **curso**, **turma** e **situação do aluno**, com PDF **resumido** ou **detalhado**. Uma seção por turma; **resumo geral** ao final com totais por turma.
+
+| Item | Detalhe |
+|------|---------|
+| **Tela** | `mobile/lib/screens/relatorio_alunos_turma/relatorio_alunos_turma_screen.dart` |
+| **Gerador** | `mobile/lib/utils/relatorio_alunos_turma_pdf.dart` |
+| **Dados** | `GET /inscricoes/relatorio-alunos-turma` (+ `/cursos` e `/turmas` para filtros) |
+| **Programa** | `relatorio_alunos_turma` |
+| **Entrega** | `submissao_pdf_delivery*.dart` (visualizar / baixar / compartilhar) |
+| **Numeração** | `Pág. N` no canto superior direito (`pdf_page_number.dart`) |
+
+### Filtros (tela)
+
+| Filtro | Comportamento |
+|--------|----------------|
+| **Curso** | **Todos os cursos** ou curso específico |
+| **Turma** | Só com curso específico: **Todas as turmas** ou uma turma |
+| **Situação** | Matriculados / Matrículas canceladas / A matricular / Todas as opções |
+| **Tipo** | **Resumido** ou **Detalhado** |
+
+Com **Todos os cursos**, o PDF quebra páginas por **curso/turma**. O resumo final lista, por turma: matriculados, matrículas canceladas e **a matricular** (somente se a turma estiver **Aberta**).
+
+### PDF — Detalhado (paisagem)
+
+| Item | Detalhe |
+|------|---------|
+| **Título** | `Relatório Detalhado de Alunos da Turma` (centralizado) |
+| **Cabeçalho** | 1ª linha: curso e turma; 2ª linha: período e situação da turma (sem filtro de situação nem tipo no cabeçalho) |
+| **Colunas** | Nome do Aluno, CPF, Idade, Escolaridade, Data Insc., Data Matr., Data Canc., Situação, Nro Atend. |
+
+### PDF — Resumido (retrato)
+
+| Item | Detalhe |
+|------|---------|
+| **Título** | `Relatório de alunos da turma` |
+| **Colunas** | Nome do Aluno, CPF, Dt Ult. Situação, situação |
+
+`Dt Ult. Situação`: data da inscrição, matrícula ou cancelamento conforme a situação atual do aluno.
+
+Rodapé do resumo geral: *Documento gerado por {usuário logado} em dd/mm/aaaa às HH:mm*.
+
+### 8.1 Outros relatórios (assistido)
 
 O **cadastro de assistido** (`/pessoas`) ainda não possui PDF institucional; pode reutilizar o mesmo padrão fundo + mapa no futuro.
 
 ---
 
-## 8. Referências no repositório
+## 9. Referências no repositório
 
 | Arquivo | Papel |
 |---------|--------|
 | `mobile/lib/utils/pdf_fonts.dart` | Open Sans para PDF (Unicode) |
 | `mobile/lib/utils/pdf_page_number.dart` | Numeração `Pág. N` (canto superior direito) |
 | `mobile/lib/utils/submissao_pdf.dart` | PDF de submissões em fluxo |
+| `mobile/lib/utils/matriculados_pdf.dart` | PDF — alunos matriculados por turma (telas Matricular / Cancelar) |
+| `mobile/lib/utils/relatorio_alunos_turma_pdf.dart` | PDF — relatório de alunos da turma (resumido / detalhado) |
+| `mobile/lib/widgets/pdf_export_menu_button.dart` | Menu AppBar (visualizar / exportar PDF) |
 | `mobile/lib/utils/entrevista_pdf.dart` | PDF da entrevista (layout fixo) |
 | `mobile/lib/constants/campo_texto.dart` | Limites de `TEXTO` no app (espelho da API) |
 | `mobile/lib/utils/entrevista_layout_config.dart` | Leitura do YAML |
@@ -271,7 +356,7 @@ O **cadastro de assistido** (`/pessoas`) ainda não possui PDF institucional; po
 
 ---
 
-## 9. Fora do escopo v1 (relatórios)
+## 10. Fora do escopo v1 (relatórios)
 
 - Editor visual de molde dentro do app
 - Geração em massa (ZIP de PDFs) — ver [setup.md](./setup.md)
@@ -279,20 +364,22 @@ O **cadastro de assistido** (`/pessoas`) ainda não possui PDF institucional; po
 
 ---
 
-## 10. Numeração de páginas
+## 11. Numeração de páginas
 
 Todos os relatórios PDF gerados no app exibem o número da página no **canto superior direito**, no formato **`Pág. 1`**, **`Pág. 2`**, …
 
 | Relatório | Implementação | Arquivo |
 |-----------|---------------|---------|
 | Submissões (fluxo) | `header` do `pw.MultiPage` | `mobile/lib/utils/pdf_page_number.dart` → `headerSuperiorDireito` |
+| Alunos matriculados (fluxo) | `header` do `pw.MultiPage` | `matriculados_pdf.dart` |
+| Relatório de alunos da turma | `header` do `pw.MultiPage` | `relatorio_alunos_turma_pdf.dart` |
 | Entrevista (layout fixo) | `Positioned` no `Stack` de cada folha | `overlaySuperiorDireito` (padrão: `top: 16`, `right: 20` pt) |
 
-Constantes compartilhadas: fonte 9pt, cor cinza (`#6B7280`), mesma família Open Sans do §11.
+Constantes compartilhadas: fonte 9pt, cor cinza (`#6B7280`), mesma família Open Sans do §12.
 
 ---
 
-## 11. Fontes nos PDFs (Unicode)
+## 12. Fontes nos PDFs (Unicode)
 
 O pacote `pdf` usa **Helvetica** por padrão, que **não** desenha travessão (`—`), acentos (ã, ç, …) e outros caracteres usados no cadastro (ex.: `município — UF`).
 
@@ -301,7 +388,7 @@ O pacote `pdf` usa **Helvetica** por padrão, que **não** desenha travessão (`
 | **Utilitário** | `mobile/lib/utils/pdf_fonts.dart` |
 | **Fonte** | Open Sans Regular/Bold via `PdfGoogleFonts` (pacote `printing`) |
 | **Uso** | `await PdfFonts.ensureInitialized()` no início de `buildBytes`; `PdfFonts.textStyle(...)` nos `pw.Text` |
-| **Onde** | `entrevista_pdf.dart`, `submissao_pdf.dart`, `pdf_page_number.dart` |
+| **Onde** | `entrevista_pdf.dart`, `submissao_pdf.dart`, `matriculados_pdf.dart`, `relatorio_alunos_turma_pdf.dart`, `pdf_page_number.dart` |
 | **Chrome / 1ª vez** | Pode exigir **rede** para baixar a fonte; depois fica em cache |
 | **Erro típico** | `Helvetica has no Unicode support` / `Unable to find a font to draw "—"` — ver [troubleshooting.md](./troubleshooting.md) |
 

@@ -1,3 +1,5 @@
+import 'auditoria_campos.dart';
+
 class Programa {
   const Programa({
     required this.id,
@@ -7,6 +9,10 @@ class Programa {
     this.moduloSistemaId,
     this.moduloCodigo,
     this.moduloNome,
+    this.relatorioSubmoduloId,
+    this.relatorioSubmoduloCodigo,
+    this.relatorioSubmoduloNome,
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
@@ -16,18 +22,25 @@ class Programa {
   final String? moduloSistemaId;
   final int? moduloCodigo;
   final String? moduloNome;
+  final String? relatorioSubmoduloId;
+  final String? relatorioSubmoduloCodigo;
+  final String? relatorioSubmoduloNome;
+  final AuditoriaCampos auditoria;
 
   Map<String, dynamic> toCreateJson() => {
         'codigo': codigo,
         'nome': nome,
         'autoListagem': autoListagem,
         if (moduloSistemaId != null) 'moduloSistemaId': moduloSistemaId,
+        if (relatorioSubmoduloId != null)
+          'relatorioSubmoduloId': relatorioSubmoduloId,
       };
 
   Map<String, dynamic> toUpdateJson() => {
         'nome': nome,
         'autoListagem': autoListagem,
         'moduloSistemaId': moduloSistemaId,
+        'relatorioSubmoduloId': relatorioSubmoduloId,
       };
 
   factory Programa.fromJson(Map<String, dynamic> json) {
@@ -49,6 +62,10 @@ class Programa {
       moduloSistemaId: json['moduloSistemaId'] as String?,
       moduloCodigo: moduloCodigo,
       moduloNome: json['moduloNome'] as String?,
+      relatorioSubmoduloId: json['relatorioSubmoduloId'] as String?,
+      relatorioSubmoduloCodigo: json['relatorioSubmoduloCodigo'] as String?,
+      relatorioSubmoduloNome: json['relatorioSubmoduloNome'] as String?,
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 }

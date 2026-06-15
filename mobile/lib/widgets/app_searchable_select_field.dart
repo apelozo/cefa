@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 import 'app_button.dart';
@@ -30,6 +31,10 @@ class AppSearchableSelectField<T> extends StatelessWidget {
     this.emptyListMessage,
     this.onCadastrar,
     this.cadastrarLabel = 'Cadastrar',
+    this.focusNode,
+    this.onEnterAdvance,
+    this.selectedLabel,
+    this.onBeforeOpen,
   });
 
   final String label;
@@ -37,12 +42,18 @@ class AppSearchableSelectField<T> extends StatelessWidget {
   final T? value;
   final ValueChanged<T?>? onChanged;
   final bool enabled;
+  /// Rótulo exibido quando [value] está definido mas ainda não há opção em [options].
+  final String? selectedLabel;
+  /// Executado ao tocar no campo, antes de abrir o seletor (ex.: carregar opções).
+  final Future<void> Function()? onBeforeOpen;
   final String hintText;
   final String searchLabel;
   final String? emptyListMessage;
   /// Quando informado, exibe botão para abrir cadastro e retorna o valor criado.
   final Future<T?> Function()? onCadastrar;
   final String cadastrarLabel;
+  final FocusNode? focusNode;
+  final VoidCallback? onEnterAdvance;
 
   SearchableSelectOption<T>? _selectedOption() {
     for (final o in options) {
@@ -53,6 +64,15 @@ class AppSearchableSelectField<T> extends StatelessWidget {
 
   Future<void> _openPicker(BuildContext context) async {
     if (!enabled || onChanged == null) return;
+
+    if (onBeforeOpen != null) {
+      try {
+        await onBeforeOpen!();
+      } catch (_) {
+        return;
+      }
+      if (!context.mounted) return;
+    }
 
     final picked = await showModalBottomSheet<T?>(
       context: context,
@@ -77,10 +97,18 @@ class AppSearchableSelectField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = _selectedOption();
-    final displayText = selected?.label ?? hintText;
-    final isPlaceholder = selected == null;
+    final displayText = selected?.label ??
+        (value != null &&
+                selectedLabel != null &&
+                selectedLabel!.trim().isNotEmpty
+            ? selectedLabel!
+            : hintText);
+    final isPlaceholder = selected == null &&
+        (value == null ||
+            selectedLabel == null ||
+            selectedLabel!.trim().isEmpty);
 
-    return InputDecorator(
+    final selector = InputDecorator(
       decoration: InputDecoration(
         labelText: label,
         suffixIcon: const Icon(Icons.arrow_drop_down),
@@ -98,6 +126,28 @@ class AppSearchableSelectField<T> extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    final node = focusNode;
+    if (node == null) return selector;
+
+    return Focus(
+      focusNode: node,
+      onKeyEvent: (_, event) {
+        if (onEnterAdvance == null) return KeyEventResult.ignored;
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+        if (event.logicalKey != LogicalKeyboardKey.enter &&
+            event.logicalKey != LogicalKeyboardKey.numpadEnter) {
+          return KeyEventResult.ignored;
+        }
+        if (HardwareKeyboard.instance.isShiftPressed) {
+          return KeyEventResult.ignored;
+        }
+        if (!node.hasFocus) return KeyEventResult.ignored;
+        onEnterAdvance!();
+        return KeyEventResult.handled;
+      },
+      child: selector,
     );
   }
 }

@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { replyMapped, replyMappedList } from "../lib/resposta-api.js";
 import { ZodError } from "zod";
 import { DeleteBlockedError } from "../lib/delete-guard.js";
 import {
@@ -40,7 +41,7 @@ export const departamentosRoutes: FastifyPluginAsync = async (app) => {
       codigo,
       descricao: query.descricao,
     });
-    return reply.send(items.map(mapDepartamento));
+    return replyMappedList(reply, items, mapDepartamento);
   });
 
   app.get("/departamentos/:id", async (request, reply) => {
@@ -49,14 +50,14 @@ export const departamentosRoutes: FastifyPluginAsync = async (app) => {
     if (!item) {
       return reply.status(404).send({ error: "Departamento não encontrado" });
     }
-    return reply.send(mapDepartamento(item));
+    return replyMapped(reply, item, mapDepartamento);
   });
 
   app.post("/departamentos", async (request, reply) => {
     try {
       const body = createDepartamentoSchema.parse(request.body);
       const item = await createDepartamento(body, request.usuarioId!);
-      return reply.status(201).send(mapDepartamento(item));
+      return replyMapped(reply, item, mapDepartamento, 201);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -79,7 +80,7 @@ export const departamentosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Departamento não encontrado" });
       }
-      return reply.send(mapDepartamento(item));
+      return replyMapped(reply, item, mapDepartamento);
     } catch (err) {
       if (err instanceof ZodError) {
         return reply.status(400).send({
@@ -104,7 +105,7 @@ export const departamentosRoutes: FastifyPluginAsync = async (app) => {
       if (!item) {
         return reply.status(404).send({ error: "Departamento não encontrado" });
       }
-      return reply.send(mapDepartamento(item));
+      return replyMapped(reply, item, mapDepartamento);
     } catch (err) {
       if (err instanceof DeleteBlockedError) {
         return reply.status(409).send({ error: err.message });

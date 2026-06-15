@@ -1,22 +1,44 @@
+import 'auditoria_campos.dart';
+
 class ModuloProgramaResumo {
   const ModuloProgramaResumo({
     required this.id,
     required this.codigo,
     required this.nome,
     this.autoListagem = false,
+    this.relatorioSubmoduloId,
+    this.relatorioSubmoduloCodigo,
+    this.relatorioSubmoduloNome,
+    this.relatorioSubmoduloOrdem,
   });
 
   final String id;
   final String codigo;
   final String nome;
   final bool autoListagem;
+  final String? relatorioSubmoduloId;
+  final String? relatorioSubmoduloCodigo;
+  final String? relatorioSubmoduloNome;
+  final int? relatorioSubmoduloOrdem;
 
   factory ModuloProgramaResumo.fromJson(Map<String, dynamic> json) {
+    final ordemRaw = json['relatorioSubmoduloOrdem'];
+    int? relatorioSubmoduloOrdem;
+    if (ordemRaw is int) {
+      relatorioSubmoduloOrdem = ordemRaw;
+    } else if (ordemRaw is num) {
+      relatorioSubmoduloOrdem = ordemRaw.toInt();
+    }
+
     return ModuloProgramaResumo(
       id: json['id'] as String,
       codigo: json['codigo'] as String,
       nome: json['nome'] as String,
       autoListagem: json['autoListagem'] as bool? ?? false,
+      relatorioSubmoduloId: json['relatorioSubmoduloId'] as String?,
+      relatorioSubmoduloCodigo: json['relatorioSubmoduloCodigo'] as String?,
+      relatorioSubmoduloNome: json['relatorioSubmoduloNome'] as String?,
+      relatorioSubmoduloOrdem: relatorioSubmoduloOrdem,
     );
   }
 }
@@ -31,6 +53,7 @@ class ModuloSistema {
     required this.ativo,
     required this.createdAt,
     this.programas = const [],
+    this.auditoria = const AuditoriaCampos(),
   });
 
   final String id;
@@ -41,6 +64,7 @@ class ModuloSistema {
   final bool ativo;
   final DateTime createdAt;
   final List<ModuloProgramaResumo> programas;
+  final AuditoriaCampos auditoria;
 
   factory ModuloSistema.fromJson(Map<String, dynamic> json) {
     final programasRaw = json['programas'] as List<dynamic>?;
@@ -58,6 +82,7 @@ class ModuloSistema {
               )
               .toList() ??
           const [],
+      auditoria: AuditoriaCampos.fromJson(json),
     );
   }
 
