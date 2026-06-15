@@ -39,14 +39,38 @@ export async function syncModulos() {
  * Garante que programas do catálogo existam no banco.
  * Em registros já existentes, atualiza apenas nome e autoListagem do catálogo.
  * O vínculo programa ↔ módulo (moduloSistemaId) definido na UI não é sobrescrito.
+ * Submódulo de relatório: aplicado na criação ou quando ainda null (ex.: programa
+ * criado após a migration que só faz UPDATE em linhas já existentes).
  */
 export async function syncProgramas() {
   const modulos = await prisma.moduloSistema.findMany();
   const moduloPorCodigo = new Map(modulos.map((m) => [m.codigo, m.id]));
 
+  const submodulos = await prisma.relatorioSubmodulo.findMany({
+    where: { ativo: true },
+    select: { id: true, codigo: true },
+  });
+  const submoduloIdPorCodigo = new Map(
+    submodulos.map((s) => [s.codigo, s.id]),
+  );
+
   for (const p of PROGRAMAS_CATALOGO) {
     const moduloSistemaId = moduloPorCodigo.get(p.moduloCodigo) ?? null;
     const audit = auditSistema();
+    const relatorioSubmoduloIdPadrao = p.relatorioSubmoduloCodigo
+      ? (submoduloIdPorCodigo.get(p.relatorioSubmoduloCodigo) ?? null)
+      : null;
+
+    const existing = await prisma.programa.findUnique({
+      where: { codigo: p.codigo },
+      select: { relatorioSubmoduloId: true },
+    });
+
+    const relatorioSubmoduloIdCreate = relatorioSubmoduloIdPadrao;
+    const relatorioSubmoduloIdUpdate =
+      relatorioSubmoduloIdPadrao && !existing?.relatorioSubmoduloId
+        ? relatorioSubmoduloIdPadrao
+        : undefined;
 
     await prisma.programa.upsert({
       where: { codigo: p.codigo },
@@ -55,11 +79,15 @@ export async function syncProgramas() {
         nome: p.nome,
         autoListagem: p.autoListagem,
         moduloSistemaId,
+        relatorioSubmoduloId: relatorioSubmoduloIdCreate,
         ...audit,
       },
       update: {
         nome: p.nome,
         autoListagem: p.autoListagem,
+        ...(relatorioSubmoduloIdUpdate !== undefined && {
+          relatorioSubmoduloId: relatorioSubmoduloIdUpdate,
+        }),
       },
     });
   }

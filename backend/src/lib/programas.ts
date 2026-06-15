@@ -3,6 +3,8 @@ export type ProgramaDef = {
   nome: string;
   autoListagem: boolean;
   moduloCodigo: number;
+  /** Submódulo padrão no módulo Relatórios (aplicado na criação ou se ainda não vinculado). */
+  relatorioSubmoduloCodigo?: string;
 };
 
 export const PROGRAMAS_CATALOGO: ProgramaDef[] = [
@@ -95,6 +97,7 @@ export const PROGRAMAS_CATALOGO: ProgramaDef[] = [
     nome: "Relatório de Alunos da Turma",
     autoListagem: true,
     moduloCodigo: 3,
+    relatorioSubmoduloCodigo: "iefa",
   },
   {
     codigo: "voluntarios",
